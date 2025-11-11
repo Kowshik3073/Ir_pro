@@ -277,6 +277,103 @@ try:
     img.save('network_combined_importance.png', quality=95)
     print("Visualization saved as 'network_combined_importance.png'")
     
+    # Generate individual graphs for each metric
+    print("\nGenerating individual metric graphs...")
+    
+    # PageRank graph
+    img_pr = Image.new('RGB', (900, 800), color='white')
+    draw_pr = ImageDraw.Draw(img_pr)
+    
+    try:
+        font_pr = ImageFont.truetype("arial.ttf", 28)
+        title_font_pr = ImageFont.truetype("arial.ttf", 36)
+    except:
+        try:
+            font_pr = ImageFont.truetype("C:\\Windows\\Fonts\\arial.ttf", 28)
+            title_font_pr = ImageFont.truetype("C:\\Windows\\Fonts\\arial.ttf", 36)
+        except:
+            font_pr = ImageFont.load_default(size=20)
+            title_font_pr = ImageFont.load_default(size=24)
+    
+    # Draw PageRank edges
+    for u, v in G.edges():
+        x1, y1 = pos[u]
+        x2, y2 = pos[v]
+        draw_pr.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+    
+    # Draw PageRank nodes
+    for i, node in enumerate(nodes):
+        x, y = pos[node]
+        importance = pr_norm[i]
+        radius = 25 + importance * 45
+        draw_pr.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
+                       fill='#ff6b6b', outline='#000000', width=3)
+        bbox = draw_pr.textbbox((0, 0), node, font=font_pr)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw_pr.text((x - text_width//2, y - text_height//2), node, fill='#000000', font=font_pr)
+    
+    bbox = draw_pr.textbbox((0, 0), "PageRank - Global Network Influence", font=title_font_pr)
+    title_width = bbox[2] - bbox[0]
+    draw_pr.text(((900 - title_width) // 2, 20), "PageRank - Global Network Influence", fill='#000000', font=title_font_pr)
+    
+    img_pr.save('network_pagerank.png', quality=95)
+    print("PageRank graph saved as 'network_pagerank.png'")
+    
+    # Authority graph
+    img_auth = Image.new('RGB', (900, 800), color='white')
+    draw_auth = ImageDraw.Draw(img_auth)
+    
+    for u, v in G.edges():
+        x1, y1 = pos[u]
+        x2, y2 = pos[v]
+        draw_auth.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+    
+    for i, node in enumerate(nodes):
+        x, y = pos[node]
+        importance = auth_norm[i]
+        radius = 25 + importance * 45
+        draw_auth.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
+                         fill='#66bb6a', outline='#000000', width=3)
+        bbox = draw_auth.textbbox((0, 0), node, font=font_pr)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw_auth.text((x - text_width//2, y - text_height//2), node, fill='#000000', font=font_pr)
+    
+    bbox = draw_auth.textbbox((0, 0), "Authority - Trusted Sources (HITS)", font=title_font_pr)
+    title_width = bbox[2] - bbox[0]
+    draw_auth.text(((900 - title_width) // 2, 20), "Authority - Trusted Sources (HITS)", fill='#000000', font=title_font_pr)
+    
+    img_auth.save('network_authority.png', quality=95)
+    print("Authority graph saved as 'network_authority.png'")
+    
+    # Hub graph
+    img_hub = Image.new('RGB', (900, 800), color='white')
+    draw_hub = ImageDraw.Draw(img_hub)
+    
+    for u, v in G.edges():
+        x1, y1 = pos[u]
+        x2, y2 = pos[v]
+        draw_hub.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+    
+    for i, node in enumerate(nodes):
+        x, y = pos[node]
+        importance = hub_norm[i]
+        radius = 25 + importance * 45
+        draw_hub.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
+                        fill='#ffc107', outline='#000000', width=3)
+        bbox = draw_hub.textbbox((0, 0), node, font=font_pr)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw_hub.text((x - text_width//2, y - text_height//2), node, fill='#000000', font=font_pr)
+    
+    bbox = draw_hub.textbbox((0, 0), "Hub - Link Distributors (HITS)", font=title_font_pr)
+    title_width = bbox[2] - bbox[0]
+    draw_hub.text(((900 - title_width) // 2, 20), "Hub - Link Distributors (HITS)", fill='#000000', font=title_font_pr)
+    
+    img_hub.save('network_hub.png', quality=95)
+    print("Hub graph saved as 'network_hub.png'")
+    
 except Exception as e:
     print(f"Error creating visualization: {e}")
     import traceback
