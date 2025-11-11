@@ -100,12 +100,7 @@
         }
 
         .bar-container {
-            width: 100%;
-            height: 25px;
-            background: #334155;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 10px;
+            display: none;
         }
 
         .bar {
@@ -113,13 +108,6 @@
             background: linear-gradient(90deg, #22c55e, #16a34a);
             border-radius: 12px;
             transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 0.85em;
         }
 
         .ranking-table {
@@ -288,7 +276,6 @@
                         <th>Rank</th>
                         <th>Node</th>
                         <th>Authority Score</th>
-                        <th>Percentage</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -304,11 +291,12 @@
                 <a href="index.html" class="btn btn-primary">Back to Dashboard</a>
                 <a href="pagerank.html" class="btn btn-secondary">View PageRank Scores</a>
                 <a href="hub.html" class="btn btn-secondary">View Hub Scores</a>
+                <a href="comparison.html" class="btn btn-secondary">Algorithm Comparison</a>
             </div>
         </div>
 
         <footer>
-            <p>Authority Analysis | Assignment 2: Link Analysis Algorithms</p>
+            <p>Authority Analysis</p>
         </footer>
     </div>
 
@@ -339,7 +327,7 @@
                 <div class="node-name">Node ${item.node}</div>
                 <div class="score-value">Score: ${item.score.toFixed(6)}</div>
                 <div class="bar-container">
-                    <div class="bar" style="width: ${percentage}%">${percentage.toFixed(1)}%</div>
+                    <div class="bar" style="width: ${percentage}%"></div>
                 </div>
             `;
             metricsGrid.appendChild(card);
@@ -348,13 +336,11 @@
         // Render table
         const tableBody = document.getElementById('table-body');
         data.forEach((item, index) => {
-            const percentage = (item.score / maxScore) * 100;
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><span class="rank-badge">#${index + 1}</span></td>
                 <td><strong>Node ${item.node}</strong></td>
                 <td>${item.score.toFixed(6)}</td>
-                <td>${percentage.toFixed(2)}%</td>
             `;
             tableBody.appendChild(row);
         });

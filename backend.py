@@ -189,8 +189,42 @@ try:
     pos = {}
     for i, node in enumerate(nodes):
         angle = 2 * math.pi * i / len(nodes)
-        r = 280  # Much larger radius to spread nodes apart
+        r = 340  # Increased radius for more spacing between nodes
         pos[node] = (graph_width // 2 + r * math.cos(angle), graph_height // 2 + r * math.sin(angle))
+    
+    def draw_arrow(draw, x1, y1, x2, y2, fill_color='#000000', width=4):
+        """Draw a line with an arrow in the middle pointing from (x1,y1) to (x2,y2)"""
+        import math
+        
+        # Draw the line
+        draw.line([(x1, y1), (x2, y2)], fill=fill_color, width=width)
+        
+        # Calculate midpoint
+        mid_x = (x1 + x2) / 2
+        mid_y = (y1 + y2) / 2
+        
+        # Calculate arrow direction
+        angle = math.atan2(y2 - y1, x2 - x1)
+        arrow_length = 30  # Length of arrow from tip to base
+        arrow_width = 18   # Width of arrow
+        
+        # Arrow tip is at midpoint
+        # Two points forming the arrowhead base
+        arrow_p1 = (
+            mid_x - arrow_length * math.cos(angle) - arrow_width * math.sin(angle),
+            mid_y - arrow_length * math.sin(angle) + arrow_width * math.cos(angle)
+        )
+        arrow_p2 = (
+            mid_x - arrow_length * math.cos(angle) + arrow_width * math.sin(angle),
+            mid_y - arrow_length * math.sin(angle) - arrow_width * math.cos(angle)
+        )
+        
+        # Draw filled arrowhead with dark border
+        draw.polygon([(mid_x, mid_y), arrow_p1, arrow_p2], fill=fill_color)
+        # Draw arrowhead outline for better visibility
+        draw.line([(mid_x, mid_y), arrow_p1], fill='#000000', width=2)
+        draw.line([(mid_x, mid_y), arrow_p2], fill='#000000', width=2)
+        draw.line([arrow_p1, arrow_p2], fill='#000000', width=2)
     
     def draw_graph(draw, graph_pos, scores_norm, start_x, start_y, graph_w, graph_h, title, color):
         """Draw a single network graph with node sizes based on scores"""
@@ -208,20 +242,20 @@ try:
                 large_font = ImageFont.load_default(size=20)
                 title_font = ImageFont.load_default(size=24)
         
-        # Draw edges first
+        # Draw edges first with arrows
         for u, v in G.edges():
             x1, y1 = graph_pos[u]
             x2, y2 = graph_pos[v]
             x1, y1 = start_x + x1, start_y + y1
             x2, y2 = start_x + x2, start_y + y2
-            draw.line([(x1, y1), (x2, y2)], fill='#999999', width=3)
+            draw_arrow(draw, x1, y1, x2, y2, fill_color='#1a1a1a', width=4)
         
         # Draw nodes
         for i, node in enumerate(nodes):
             x, y = graph_pos[node]
             x, y = start_x + x, start_y + y
             importance = scores_norm[i]
-            radius = 30 + importance * 50  # Much larger size range: 30-80 pixels
+            radius = 20 + importance * 30  # Smaller size range: 20-50 pixels
             
             # Draw circle with strong contrast
             draw.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
@@ -295,17 +329,17 @@ try:
             font_pr = ImageFont.load_default(size=20)
             title_font_pr = ImageFont.load_default(size=24)
     
-    # Draw PageRank edges
+    # Draw PageRank edges with arrows
     for u, v in G.edges():
         x1, y1 = pos[u]
         x2, y2 = pos[v]
-        draw_pr.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+        draw_arrow(draw_pr, x1, y1, x2, y2, fill_color='#1a1a1a', width=4)
     
     # Draw PageRank nodes
     for i, node in enumerate(nodes):
         x, y = pos[node]
         importance = pr_norm[i]
-        radius = 25 + importance * 45
+        radius = 18 + importance * 32
         draw_pr.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
                        fill='#ff6b6b', outline='#000000', width=3)
         bbox = draw_pr.textbbox((0, 0), node, font=font_pr)
@@ -327,12 +361,12 @@ try:
     for u, v in G.edges():
         x1, y1 = pos[u]
         x2, y2 = pos[v]
-        draw_auth.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+        draw_arrow(draw_auth, x1, y1, x2, y2, fill_color='#1a1a1a', width=4)
     
     for i, node in enumerate(nodes):
         x, y = pos[node]
         importance = auth_norm[i]
-        radius = 25 + importance * 45
+        radius = 18 + importance * 32
         draw_auth.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
                          fill='#66bb6a', outline='#000000', width=3)
         bbox = draw_auth.textbbox((0, 0), node, font=font_pr)
@@ -354,12 +388,12 @@ try:
     for u, v in G.edges():
         x1, y1 = pos[u]
         x2, y2 = pos[v]
-        draw_hub.line([(x1, y1), (x2, y2)], fill='#cccccc', width=2)
+        draw_arrow(draw_hub, x1, y1, x2, y2, fill_color='#1a1a1a', width=4)
     
     for i, node in enumerate(nodes):
         x, y = pos[node]
         importance = hub_norm[i]
-        radius = 25 + importance * 45
+        radius = 18 + importance * 32
         draw_hub.ellipse([(x - radius, y - radius), (x + radius, y + radius)], 
                         fill='#ffc107', outline='#000000', width=3)
         bbox = draw_hub.textbbox((0, 0), node, font=font_pr)
