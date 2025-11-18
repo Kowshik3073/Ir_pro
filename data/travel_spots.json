@@ -1,0 +1,124 @@
+{
+  "travel_spots": [
+    {
+      "id": 1,
+      "name": "Goa Beach",
+      "mood": ["relaxing", "party"],
+      "budget_min": 2500,
+      "budget_max": 6000,
+      "duration_days": 4,
+      "distance_km": 1500,
+      "rating": 4.5,
+      "best_months": ["october", "november", "december", "january", "february", "march"],
+      "description": "Popular beach destination with nightlife, water sports and scenic sunsets"
+    },
+    {
+      "id": 2,
+      "name": "Manali Hill Station",
+      "mood": ["adventure", "nature"],
+      "budget_min": 3500,
+      "budget_max": 8000,
+      "duration_days": 4,
+      "distance_km": 900,
+      "rating": 4.7,
+      "best_months": ["march", "april", "may", "september", "october"],
+      "description": "Mountain hill station perfect for trekking, paragliding and scenic views"
+    },
+    {
+      "id": 3,
+      "name": "Kerala Backwaters",
+      "mood": ["relaxing", "nature", "romantic"],
+      "budget_min": 3000,
+      "budget_max": 7000,
+      "duration_days": 3,
+      "distance_km": 2000,
+      "rating": 4.6,
+      "best_months": ["september", "october", "november", "december", "january", "february"],
+      "description": "Serene backwaters with houseboats, coconut plantations and scenic beauty"
+    },
+    {
+      "id": 4,
+      "name": "Jaipur City Tour",
+      "mood": ["cultural", "history"],
+      "budget_min": 2000,
+      "budget_max": 5000,
+      "duration_days": 2,
+      "distance_km": 300,
+      "rating": 4.4,
+      "best_months": ["october", "november", "december", "january", "february", "march"],
+      "description": "Famous for Pink City architecture, City Palace, Hawa Mahal and historical monuments"
+    },
+    {
+      "id": 5,
+      "name": "Leh Ladakh Mountain",
+      "mood": ["adventure", "nature"],
+      "budget_min": 5500,
+      "budget_max": 12000,
+      "duration_days": 6,
+      "distance_km": 2500,
+      "rating": 4.8,
+      "best_months": ["june", "july", "august", "september"],
+      "description": "High altitude adventure mountain destination with stunning Himalayan landscapes"
+    },
+    {
+      "id": 6,
+      "name": "Ooty Hill Station",
+      "mood": ["relaxing", "nature"],
+      "budget_min": 2500,
+      "budget_max": 6000,
+      "duration_days": 3,
+      "distance_km": 800,
+      "rating": 4.3,
+      "best_months": ["march", "april", "may", "june", "september", "october"],
+      "description": "Cool climate hill station with beautiful gardens, tea plantations and trekking"
+    },
+    {
+      "id": 7,
+      "name": "Varanasi Spiritual",
+      "mood": ["spiritual", "cultural", "history"],
+      "budget_min": 1500,
+      "budget_max": 3500,
+      "duration_days": 2,
+      "distance_km": 600,
+      "rating": 4.5,
+      "best_months": ["october", "november", "december", "january", "february"],
+      "description": "Sacred city with spiritual significance, ancient temples, ghats and cultural heritage"
+    },
+    {
+      "id": 8,
+      "name": "Mumbai Night Life",
+      "mood": ["party", "cultural"],
+      "budget_min": 3500,
+      "budget_max": 9000,
+      "duration_days": 2,
+      "distance_km": 500,
+      "rating": 4.4,
+      "best_months": ["october", "november", "december", "january", "february", "march"],
+      "description": "Vibrant city with nightlife, beaches, cultural attractions and modern restaurants"
+    },
+    {
+      "id": 9,
+      "name": "Shimla Snow Mountain",
+      "mood": ["adventure", "nature"],
+      "budget_min": 4000,
+      "budget_max": 8500,
+      "duration_days": 3,
+      "distance_km": 400,
+      "rating": 4.6,
+      "best_months": ["october", "november", "december", "january", "february"],
+      "description": "Snow-covered mountain hills perfect for winter sports, trekking and sightseeing"
+    },
+    {
+      "id": 10,
+      "name": "Rishikesh Yoga",
+      "mood": ["relaxing", "spiritual"],
+      "budget_min": 2000,
+      "budget_max": 5000,
+      "duration_days": 3,
+      "distance_km": 250,
+      "rating": 4.5,
+      "best_months": ["september", "october", "november", "december", "january", "february", "march"],
+      "description": "Yoga and meditation hub with ashrams, river activities and spiritual retreats"
+    }
+  ]
+}
