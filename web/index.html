@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TravelVibe - AI-Powered Destination Finder</title>
+    <title>Travel Spot Recommendation</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         /* Index-specific styles */
@@ -11,15 +11,6 @@
             text-align: center;
             padding: 60px 20px 40px;
             position: relative;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin-top: 30px;
-            animation: fadeInUp 0.8s ease 0.4s both;
         }
 
         .search-wrapper {
@@ -261,10 +252,6 @@
         }
 
         @media (max-width: 768px) {
-            .stats {
-                gap: 20px;
-            }
-
             .search-card {
                 padding: 25px;
             }
@@ -292,28 +279,8 @@
     <div class="container">
         <!-- Hero Section -->
         <section class="hero">
-            <h1 class="logo">TravelVibe</h1>
-            <p class="tagline">AI-powered recommendations for your perfect journey</p>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-number">100+</div>
-                    <div class="stat-label">Destinations</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">10K+</div>
-                    <div class="stat-label">Happy Travelers</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">4.9★</div>
-                    <div class="stat-label">User Rating</div>
-                </div>
-            </div>
-
-            <div class="location-badge" onclick="app.showLocationModal()">
-                <span>📍</span>
-                <span>Your Location: <strong id="currentLocation">Not Set</strong></span>
-            </div>
+            <h1 class="logo">Travel Spot Recommendation</h1>
+            <p class="tagline">Find your perfect travel destination</p>
         </section>
 
         <!-- Search Section -->
@@ -379,7 +346,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2025 TravelVibe • Powered by AI • Made with ❤️ for travelers</p>
+            <p>© 2025 Travel Spot Recommendation • Find Your Perfect Destination</p>
         </footer>
     </div>
 

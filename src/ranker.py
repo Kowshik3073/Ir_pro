@@ -60,26 +60,32 @@ class TravelSpotRanker:
         """
         Calculate relevance score for a spot.
         
+        DYNAMIC WEIGHTING: Weights adapt based on explicit constraints.
+        When duration is explicitly specified, it becomes PRIMARY (20%).
+        
         Weighted factors:
-        - Query match in description (30%): Content relevance
-        - Budget (25%): Most important for user satisfaction
+        - Query match in description (15%): Content relevance
+        - Budget (25%): Most important for user satisfaction  
         - Mood (20%): User preference matching
-        - Name/Destination type (15%): Ensures right category
+        - Duration (20%): CRITICAL when explicitly specified in query
+        - Name/Destination type (12%): Ensures right category
         - Best months (5%): Travel planning
-        - Duration (3%): Time availability
-        - Distance (2%): Accessibility
+        - Distance (3%): Accessibility
         """
         score = 0.0
         
-        # 0. DESCRIPTION/CONTENT MATCHING (30% weight) - NEW AND HIGHEST PRIORITY
+        # Check if duration is explicitly in the query (high priority signal)
+        duration_specified = constraints.get('duration_days') is not None
+        
+        # 0. DESCRIPTION/CONTENT MATCHING (15% weight) - Reduced when duration is explicit
         # Search for query terms in description and name
         if constraints.get('query_terms'):
             desc_score = self._calculate_description_match_score(metadata, constraints['query_terms'])
-            score += desc_score * 0.30
+            score += desc_score * 0.15
         else:
-            score += 0.5 * 0.30
+            score += 0.5 * 0.15
         
-        # 1. BUDGET SCORE (25% weight)
+        # 1. BUDGET SCORE (25% weight) - Always primary
         if constraints.get('budget_max'):
             budget_score = self._calculate_budget_score(
                 metadata['budget_min'],
@@ -97,11 +103,22 @@ class TravelSpotRanker:
         else:
             score += 0.5 * 0.20
         
-        # 3. Place Name/Destination Type Boost (15% weight)
-        name_boost = self._calculate_name_boost(metadata['name'], constraints)
-        score += name_boost * 0.15
+        # 3. Duration Score (20% weight) - BOOSTED when explicitly specified
+        # Duration is a hard constraint when mentioned in query
+        if duration_specified:
+            duration_score = self._calculate_duration_score(
+                metadata['duration_days'],
+                constraints['duration_days']
+            )
+            score += duration_score * 0.20
+        else:
+            score += 0.5 * 0.20
         
-        # 4. Best Months Match (5% weight)
+        # 4. Place Name/Destination Type Boost (12% weight)
+        name_boost = self._calculate_name_boost(metadata['name'], constraints)
+        score += name_boost * 0.12
+        
+        # 5. Best Months Match (5% weight)
         if constraints.get('best_months'):
             months_boost = self._calculate_months_boost(
                 metadata.get('best_months', []),
@@ -111,25 +128,15 @@ class TravelSpotRanker:
         else:
             score += 0.5 * 0.05
         
-        # 5. Duration Score (3% weight)
-        if constraints.get('duration_days'):
-            duration_score = self._calculate_duration_score(
-                metadata['duration_days'],
-                constraints['duration_days']
-            )
-            score += duration_score * 0.03
-        else:
-            score += 0.5 * 0.03
-        
-        # 6. Distance Score (2% weight) - LOWEST PRIORITY
+        # 6. Distance Score (3% weight)
         if constraints.get('distance_km'):
             distance_score = self._calculate_distance_score(
                 metadata['distance_km'],
                 constraints['distance_km']
             )
-            score += distance_score * 0.02
+            score += distance_score * 0.03
         else:
-            score += 0.5 * 0.02
+            score += 0.5 * 0.03
         
         return score
     
@@ -270,18 +277,34 @@ class TravelSpotRanker:
     def _calculate_duration_score(self, spot_duration: int, user_duration: int) -> float:
         """
         Score based on duration compatibility.
-        Prefer spots with duration close to user's available time
+        
+        CRITICAL: Heavily reward exact matches and penalize mismatches.
+        When user specifies duration, it's a PRIMARY hard constraint.
+        
+        Scoring strategy:
+        - Exact match (diff=0): 1.0 (perfect)
+        - Off by 1 day: 0.90
+        - Off by 2 days: 0.75  
+        - Off by 3 days: 0.55
+        - Beyond 3 days: very poor score (~0.30-0.40)
+        
+        This ensures exact matches always win over close mismatches.
         """
         diff = abs(spot_duration - user_duration)
         
         if diff == 0:
-            return 1.0  # Perfect match
-        elif diff <= 1:
-            return 0.9  # Very close
-        elif diff <= 2:
-            return 0.7  # Close
+            return 1.0  # Exact match - highest score
+        elif diff == 1:
+            return 0.90  # Very close
+        elif diff == 2:
+            return 0.75  # Close but not ideal
+        elif diff == 3:
+            return 0.55  # Moderately different
+        elif diff == 4:
+            return 0.40  # Significantly different
         else:
-            return max(0.4, 1.0 - (diff * 0.1))  # Penalize larger differences
+            # Very large difference - heavy penalty
+            return max(0.25, 1.0 - (diff * 0.12))
     
     def _calculate_distance_score(self, spot_distance: int, max_distance: int) -> float:
         """

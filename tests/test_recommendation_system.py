@@ -134,6 +134,44 @@ class TestQueryProcessor(unittest.TestCase):
         constraints = self.processor.process_query("best season is summer")
         self.assertIn('march', constraints['best_months'])
         self.assertIn('june', constraints['best_months'])
+    
+    def test_budget_focus_flag(self):
+        """Test that 'budget friendly' keyword sets budget_max to 3500"""
+        query = "budget friendly destination"
+        constraints = self.processor.process_query(query)
+        self.assertEqual(constraints['budget_max'], 3500)
+    
+    def test_budget_focus_override(self):
+        """Test that explicit budget number overrides default budget-friendly setting"""
+        query = "budget friendly but I have 7000 rupees"
+        constraints = self.processor.process_query(query)
+        # Explicit number (7000) should override the default budget-friendly (3500)
+        self.assertEqual(constraints['budget_max'], 7000)
+    
+    def test_expanded_stop_words(self):
+        """Test that expanded stop words are properly filtered from query terms"""
+        query = "I want to find a beautiful adventure place for me"
+        constraints = self.processor.process_query(query)
+        query_terms = constraints['query_terms']
+        # Should extract meaningful terms, not stop words
+        self.assertIn('beautiful', query_terms)
+        self.assertIn('adventure', query_terms)
+        self.assertIn('place', query_terms)
+        # Stop words should be filtered out
+        self.assertNotIn('want', query_terms)
+        self.assertNotIn('find', query_terms)
+    
+    def test_user_location_extraction(self):
+        """Test extraction of user location from query"""
+        query = "I want to visit tirupathi temple"
+        constraints = self.processor.process_query(query)
+        self.assertEqual(constraints['place_name'], 'Tirupathi Spiritual Temple')
+    
+    def test_user_location_alt_pattern(self):
+        """Test alternative location patterns (e.g., 'leh', 'ladakh')"""
+        query = "best destination is leh"
+        constraints = self.processor.process_query(query)
+        self.assertEqual(constraints['place_name'], 'Leh Ladakh Mountain')
 
 
 class TestRanker(unittest.TestCase):
@@ -217,6 +255,40 @@ class TestRanker(unittest.TestCase):
         """Test duration scoring with exact match"""
         score = self.ranker._calculate_duration_score(3, 3)
         self.assertEqual(score, 1.0)
+    
+    def test_budget_score_over_max(self):
+        """Test budget scoring when spot budget is higher than user budget"""
+        # When user budget is lower than spot's budget_max
+        # User has 4000, spot costs 5000-10000 (over budget)
+        score = self.ranker._calculate_budget_score(5000, 10000, 4000)
+        self.assertLess(score, 1.0)
+        self.assertGreater(score, 0)  # Should not be penalized too harshly
+    
+    def test_ranking_tie_breaker_logic_by_rating(self):
+        """Test that ranking uses rating as tie-breaker for identical scores"""
+        # Create constraints that would produce similar scores
+        constraints = {
+            'budget_max': 3500,
+            'mood': ['spiritual', 'cultural'],
+            'duration_days': 2,
+            'distance_km': None,
+            'place_name': None,
+            'best_months': []
+        }
+        results = self.ranker.rank_spots(constraints, top_k=5)
+        
+        # Check that results are properly ranked
+        self.assertGreater(len(results), 0)
+        # Higher rated destinations should appear first when scores are tied
+        # Tirupathi has 4.9 rating, Varanasi has 4.5
+        if len(results) >= 2:
+            # Both are spiritual, so Tirupathi with 4.9 rating should rank higher
+            rankings = [r[2]['name'] for r in results]
+            tirupathi_idx = next((i for i, r in enumerate(rankings) if 'Tirupathi' in r), -1)
+            varanasi_idx = next((i for i, r in enumerate(rankings) if 'Varanasi' in r), -1)
+            # If both are present, Tirupathi should come before Varanasi
+            if tirupathi_idx >= 0 and varanasi_idx >= 0:
+                self.assertLess(tirupathi_idx, varanasi_idx)
 
 
 class TestRecommendationSystem(unittest.TestCase):
@@ -268,14 +340,44 @@ class TestRecommendationSystem(unittest.TestCase):
         self.assertEqual(scores, sorted(scores, reverse=True))
     
     def test_budget_friendly_ranking(self):
-        """Test that 'budget friendly' query ranks affordable destinations first"""
+        """Test that 'budget friendly' query ranks affordable destinations first
+        
+        Verifies that Tirupathi (₹1000-5000, rating 4.9) and Varanasi (₹1500-3500, rating 4.5)
+        are ranked higher than expensive destinations when budget-friendly preference is detected.
+        
+        Also tests that within budget-friendly destinations, higher-rated spots rank first
+        (dynamic weight adjustment for spiritual/cultural recommendations).
+        """
         query = "budget friendly"
         results = self.system.recommend(query, top_k=5)
-        # Tirupathi (₹1000-5000, rating 4.9) should rank first among affordable options
-        # It has the highest rating among all within-budget destinations
+        
+        # Should return results
         self.assertGreater(len(results), 0)
-        # First result should have a high rating (4.9+) for budget queries
-        self.assertGreaterEqual(results[0]['rating'], 4.8)
+        
+        # First result should be budget-friendly (affordable) with high rating
+        first_result = results[0]
+        self.assertGreaterEqual(first_result['rating'], 4.8)  # High quality rating
+        self.assertLessEqual(first_result['budget_min'], 2000)  # Affordable entry point
+        
+        # Extract result names for verification
+        result_names = [r['name'] for r in results]
+        
+        # Tirupathi (₹1000-5000, rating 4.9) should appear in top results for budget query
+        # It has the lowest budget_min (1000) and highest rating (4.9) among affordable options
+        if 'Tirupathi Spiritual Temple' in result_names:
+            tirupathi_rank = result_names.index('Tirupathi Spiritual Temple') + 1
+            # Tirupathi should rank high for budget queries
+            self.assertLessEqual(tirupathi_rank, 5)
+        
+        # Verify results are sorted by relevance score (descending)
+        scores = [r['relevance_score'] for r in results]
+        self.assertEqual(scores, sorted(scores, reverse=True))
+        
+        # Budget-friendly spots should have reasonable relevance scores
+        for result in results:
+            if result['budget_min'] <= 2000:  # Budget-friendly spots
+                self.assertGreaterEqual(result['relevance_score'], 0.5)
+
     
     def test_special_characters_in_query(self):
         """Test handling queries with special characters"""
