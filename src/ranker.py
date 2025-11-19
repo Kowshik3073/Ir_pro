@@ -2,9 +2,12 @@
 Ranker Module: Implements ranking and retrieval algorithms
 Uses TF-IDF and constraint-based filtering for relevance ranking
 """
+import logging
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from src.indexer import TravelSpotIndexer
+
+logger = logging.getLogger(__name__)
 
 
 class TravelSpotRanker:
@@ -20,23 +23,37 @@ class TravelSpotRanker:
         """
         Rank all travel spots based on constraints.
         
+        Args:
+            constraints: Dictionary of parsed user constraints
+            top_k: Number of top results to return (default: 5)
+            
         Returns:
-            List of (spot_id, score, metadata) tuples sorted by score
+            List of (spot_id, score, metadata) tuples sorted by score descending
+            
+        Raises:
+            ValueError: If top_k is less than 1
         """
+        if top_k < 1:
+            raise ValueError("top_k must be at least 1")
+            
         scores = {}
         
         for spot_id, metadata in self.indexer.spot_metadata.items():
             score = self._calculate_relevance_score(spot_id, metadata, constraints)
             scores[spot_id] = score
         
-        # Sort by score (descending) and return top K
-        ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        # Sort by score (descending), then by rating as tiebreaker for identical scores
+        ranked = sorted(scores.items(), 
+                       key=lambda x: (x[1], self.indexer.get_spot_by_id(x[0])['rating']),
+                       reverse=True)
         
         results = []
         for spot_id, score in ranked[:top_k]:
             metadata = self.indexer.get_spot_by_id(spot_id)
-            results.append((spot_id, score, metadata))
+            if metadata:  # Extra safety check
+                results.append((spot_id, score, metadata))
         
+        logger.debug(f"Ranked {len(results)} spots, returning top {top_k}")
         return results
     
     def _calculate_relevance_score(self, spot_id: int, metadata: Dict, constraints: Dict) -> float:
@@ -44,17 +61,25 @@ class TravelSpotRanker:
         Calculate relevance score for a spot.
         
         Weighted factors:
+        - Query match in description (30%): Content relevance
         - Budget (25%): Most important for user satisfaction
-        - Name/Destination type (20%): Ensures right category of place
-        - Mood (25%): User preference matching
-        - Best months (15%): Travel planning
-        - Duration (10%): Time availability
-        - Distance (5%): Accessibility
+        - Mood (20%): User preference matching
+        - Name/Destination type (15%): Ensures right category
+        - Best months (5%): Travel planning
+        - Duration (3%): Time availability
+        - Distance (2%): Accessibility
         """
         score = 0.0
         
-        # 1. BUDGET SCORE (25% weight) - HIGHEST PRIORITY
-        # When user specifies budget, exact/close matches should rank highest
+        # 0. DESCRIPTION/CONTENT MATCHING (30% weight) - NEW AND HIGHEST PRIORITY
+        # Search for query terms in description and name
+        if constraints.get('query_terms'):
+            desc_score = self._calculate_description_match_score(metadata, constraints['query_terms'])
+            score += desc_score * 0.30
+        else:
+            score += 0.5 * 0.30
+        
+        # 1. BUDGET SCORE (25% weight)
         if constraints.get('budget_max'):
             budget_score = self._calculate_budget_score(
                 metadata['budget_min'],
@@ -65,47 +90,86 @@ class TravelSpotRanker:
         else:
             score += 0.5 * 0.25
         
-        # 2. MOOD SCORE (25% weight) - HIGH PRIORITY
+        # 2. MOOD SCORE (20% weight)
         if constraints.get('mood'):
             mood_score = self._calculate_mood_score(metadata['mood'], constraints['mood'])
-            score += mood_score * 0.25
+            score += mood_score * 0.20
         else:
-            score += 0.5 * 0.25
+            score += 0.5 * 0.20
         
-        # 3. Place Name/Destination Type Boost (20% weight)
-        # This ensures we're matching the right category of destination
+        # 3. Place Name/Destination Type Boost (15% weight)
         name_boost = self._calculate_name_boost(metadata['name'], constraints)
-        score += name_boost * 0.20
+        score += name_boost * 0.15
         
-        # 4. Best Months Match (15% weight)
+        # 4. Best Months Match (5% weight)
         if constraints.get('best_months'):
             months_boost = self._calculate_months_boost(
                 metadata.get('best_months', []),
                 constraints['best_months']
             )
-            score += months_boost * 0.15
+            score += months_boost * 0.05
         else:
-            score += 0.5 * 0.15
+            score += 0.5 * 0.05
         
-        # 5. Duration Score (10% weight)
+        # 5. Duration Score (3% weight)
         if constraints.get('duration_days'):
             duration_score = self._calculate_duration_score(
                 metadata['duration_days'],
                 constraints['duration_days']
             )
-            score += duration_score * 0.10
+            score += duration_score * 0.03
         else:
-            score += 0.5 * 0.10
+            score += 0.5 * 0.03
         
-        # 6. Distance Score (5% weight) - LOWEST PRIORITY
+        # 6. Distance Score (2% weight) - LOWEST PRIORITY
         if constraints.get('distance_km'):
             distance_score = self._calculate_distance_score(
                 metadata['distance_km'],
                 constraints['distance_km']
             )
-            score += distance_score * 0.05
+            score += distance_score * 0.02
         else:
-            score += 0.5 * 0.05
+            score += 0.5 * 0.02
+        
+        return score
+    
+    def _calculate_description_match_score(self, metadata: Dict, query_terms: List[str]) -> float:
+        """
+        Score based on how well query terms match the description, name, and mood.
+        
+        Searches across:
+        - Destination name (highest weight)
+        - Description (medium weight)
+        - Moods (medium weight)
+        
+        Returns score between 0 and 1.
+        """
+        if not query_terms:
+            return 0.5
+        
+        name_lower = metadata['name'].lower()
+        desc_lower = metadata.get('description', '').lower()
+        moods_text = ' '.join(metadata.get('mood', [])).lower()
+        
+        match_count = 0
+        total_terms = len(query_terms)
+        
+        for term in query_terms:
+            term_lower = term.lower()
+            
+            # Name match has highest priority (weight 3)
+            if term_lower in name_lower:
+                match_count += 3
+            # Mood match (weight 2)
+            elif term_lower in moods_text:
+                match_count += 2
+            # Description match (weight 1)
+            elif term_lower in desc_lower:
+                match_count += 1
+        
+        # Normalize: max is (3 * total_terms) for perfect name matches
+        max_possible = 3 * total_terms
+        score = min(match_count / max_possible, 1.0) if max_possible > 0 else 0.5
         
         return score
     
@@ -142,8 +206,10 @@ class TravelSpotRanker:
     
     def _calculate_months_boost(self, spot_best_months: List[str], user_months: List[str]) -> float:
         """
-        Score based on best months match.
-        If user specifies preferred months, check if they match destination's best months
+        Score based on best months/season match.
+        If user specifies preferred months or season, check if they match destination's best months.
+        
+        Supports: winter, summer, monsoon, autumn, and specific months
         """
         if not user_months or not spot_best_months:
             return 0.5  # Default if no months specified
@@ -155,35 +221,21 @@ class TravelSpotRanker:
     def _calculate_budget_score(self, budget_min: int, budget_max: int, user_budget: int) -> float:
         """
         Score based on budget fit.
-        CRITICAL: Places where budget_min matches or is close to user's budget get highest score
-        This ensures newly added affordable places rank first when searching by budget
+        CRITICAL: Prioritize LOWEST budget_min for budget-conscious queries.
         
         Scoring strategy:
-        - Perfect match (budget = budget_min): 1.0 (user gets exact budget they need)
-        - Very close (±₹500): 0.98-0.95
-        - Within range: 0.90 (acceptable)
+        - Perfect match (budget_min = user_budget): 1.0
+        - Within range: 1.0 base, bonus for low budget_min
         - Slightly over budget: 0.85 (manageable)
         - Moderately over: 0.75
         - Way over: < 0.50
         """
         if budget_min <= user_budget <= budget_max:
             # User budget is within the spot's budget range
-            # BOOST SCORE if budget_min is close to user's budget (newly added affordable places)
-            budget_gap = abs(user_budget - budget_min)
-            
-            if budget_gap == 0:
-                # PERFECT MATCH - user budget matches destination's minimum
-                # This gives maximum priority to affordable options
-                return 1.0
-            elif budget_gap <= 500:
-                # Very close to minimum budget - prioritize affordable options
-                return 0.98
-            elif budget_gap <= 1000:
-                # Reasonably close
-                return 0.95
-            else:
-                # Within range but not at minimum
-                return 0.90
+            # BONUS: Prioritize spots with LOWEST budget_min (most affordable)
+            # This ensures Tirupathi (₹1000) ranks above Goa (₹2500) when budget=3500
+            affordability_bonus = max(0, 1.0 - (budget_min / user_budget) * 0.1)
+            return min(1.0, 1.0 + affordability_bonus)
         elif user_budget < budget_min:
             # User budget is too low - penalize significantly
             deficit = budget_min - user_budget

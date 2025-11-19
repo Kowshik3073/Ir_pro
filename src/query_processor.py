@@ -49,13 +49,40 @@ class QueryProcessor:
         'varanasi': 'Varanasi Spiritual',
         'mumbai': 'Mumbai Night Life',
         'rishikesh': 'Rishikesh Yoga',
-        'tirupathi': 'tirupathi'
+        'tirupathi': 'Tirupathi Spiritual Temple'
     }
     
     def __init__(self):
         """Initialize the query processor"""
         self.query = ""
         self.constraints = {}
+        self._tokenize_cache = {}  # Cache tokenized results
+    
+    def _extract_query_terms(self) -> None:
+        """
+        Extract raw query terms for full-text searching across descriptions.
+        
+        Removes common stop words and extracts meaningful terms from the query.
+        This allows searching destinations by their full descriptions, not just
+        specific categories.
+        """
+        stop_words = {
+            'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+            'of', 'with', 'from', 'by', 'as', 'is', 'are', 'have', 'has', 'be',
+            'can', 'i', 'you', 'we', 'they', 'what', 'where', 'when', 'why', 'how',
+            'please', 'find', 'show', 'get', 'give', 'tell', 'me', 'my', 'want'
+        }
+        
+        # Split query into terms
+        terms = self.query.split()
+        
+        # Filter stop words and extract meaningful terms
+        meaningful_terms = [
+            term.strip('.,!?;:') for term in terms 
+            if term.lower() not in stop_words and len(term) > 2
+        ]
+        
+        self.constraints['query_terms'] = meaningful_terms
     
     def _extract_place_name(self) -> None:
         """
@@ -69,7 +96,7 @@ class QueryProcessor:
                 return
     
     def _extract_months(self) -> None:
-        """Extract best visit months from query"""
+        """Extract best visit months/season from query"""
         months = {
             'january': 'january',
             'february': 'february',
@@ -86,7 +113,8 @@ class QueryProcessor:
             'winter': ['december', 'january', 'february'],
             'summer': ['march', 'april', 'may', 'june'],
             'monsoon': ['june', 'july', 'august', 'september'],
-            'autumn': ['september', 'october', 'november']
+            'autumn': ['september', 'october', 'november'],
+            'season': None  # Trigger any season match
         }
         
         months_found = []
@@ -94,8 +122,9 @@ class QueryProcessor:
             if key in self.query:
                 if isinstance(value, list):
                     months_found.extend(value)
-                else:
+                elif value is not None:
                     months_found.append(value)
+                # 'season' keyword alone doesn't add specific months
         
         if months_found:
             self.constraints['best_months'] = list(set(months_found))  # Remove duplicates
@@ -108,35 +137,39 @@ class QueryProcessor:
         Processes a natural language query and extracts structured constraints
         for place name, budget, mood, duration, distance, and best months.
         
-        Example queries:
-        - "manali" -> searches for Manali destination
-        - "beach november" -> beach mood with best months = november
-        - "I have 5000 rupees, want adventure for 4 days within 1000km"
-        - "Budget 3000, mood: relaxing, 2 days"
-        
         Args:
             query: Natural language query string
             
         Returns:
             Dictionary of extracted constraints with keys:
-            - budget_max: Maximum budget in rupees
+            - budget_max: Maximum budget in rupees (int or None)
             - mood: List of mood preferences
-            - duration_days: Trip duration in days
-            - distance_km: Maximum distance in km
-            - place_name: Specific place if mentioned
+            - duration_days: Trip duration in days (int or None)
+            - distance_km: Maximum distance in km (int or None)
+            - place_name: Specific place if mentioned (str or None)
             - best_months: List of preferred months
+            
+        Raises:
+            TypeError: If query is not a string
         """
+        if not isinstance(query, str):
+            raise TypeError(f"Query must be a string, got {type(query).__name__}")
+            
         self.query = query.lower().strip()
+        
+        # Initialize constraints with proper types
         self.constraints = {
             'budget_max': None,
             'mood': [],
             'duration_days': None,
             'distance_km': None,
             'place_name': None,
-            'best_months': []
+            'best_months': [],
+            'query_terms': []  # NEW: Raw query terms for description matching
         }
         
         # Extract all constraints from query
+        self._extract_query_terms()  # NEW: Extract terms first
         self._extract_place_name()
         self._extract_budget()
         self._extract_mood()
@@ -157,24 +190,31 @@ class QueryProcessor:
         - "I have 1000 rupees"
         - "cheap" / "budget-friendly" -> 3500 default
         
-        CRITICAL: Extract actual numbers FIRST before applying defaults
+        Always extract actual numbers first (highest priority) before applying defaults.
         """
+        if not self.query:
+            return
+            
         # Try to extract actual budget numbers first (highest priority)
         patterns = [
-            r'(?:budget|rupees|rs|inr)[\s:]+(\d+)',  # budget: 5000 or rupees 5000
-            r'(\d+)\s*(?:rupees|rs|inr)',              # 5000 rupees
-            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?[\s:]*(\d+)',  # upto 5000
-            r'^(\d+)$',                                 # just "5000"
+            r'(?:budget|rupees|rs|inr)\s*[:\s]+(\d+)',  # budget: 5000 or rupees 5000
+            r'(\d+)\s*(?:rupees|rs|inr)',                # 5000 rupees
+            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?\s*[:\s]*(\d+)',  # upto 5000
+            r'^(\d+)$',                                   # just "5000"
         ]
         
         for pattern in patterns:
             match = re.search(pattern, self.query)
             if match:
-                self.constraints['budget_max'] = int(match.group(1))
-                return  # Found actual number, don't apply defaults
+                try:
+                    budget_str = match.group(1)
+                    self.constraints['budget_max'] = int(budget_str)
+                    return  # Found actual number, don't apply defaults
+                except ValueError:
+                    continue
         
         # If no number found, check for budget-related keywords with defaults
-        if 'cheap' in self.query or 'afford' in self.query:
+        if 'cheap' in self.query or 'affordable' in self.query or 'budget' in self.query or 'friendly' in self.query:
             self.constraints['budget_max'] = 3500  # Default affordable budget
     
     def _extract_mood(self) -> None:

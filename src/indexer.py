@@ -11,11 +11,13 @@ Author: Travel Recommendation Team
 Version: 2.0
 """
 import json
+import logging
 import math
 import re
 from collections import defaultdict
 from typing import Dict, List, Set, Optional
-from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class TravelSpotIndexer:
@@ -41,6 +43,7 @@ class TravelSpotIndexer:
         self.doc_frequencies = defaultdict(int)  # term -> document frequency
         self.total_docs = 0
         self.dataset_path = None
+        self._idf_cache = {}  # Cache IDF calculations
     
     def load_dataset(self, filepath: str) -> None:
         """
@@ -52,18 +55,36 @@ class TravelSpotIndexer:
         Raises:
             FileNotFoundError: If file doesn't exist
             json.JSONDecodeError: If file is not valid JSON
+            ValueError: If dataset structure is invalid
         """
         self.dataset_path = filepath
         
         try:
-            with open(filepath, 'r') as f:
+            if not filepath or not filepath.strip():
+                raise ValueError("Filepath cannot be empty")
+                
+            with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                self.spots_data = data.get('travel_spots', [])
-                self.total_docs = len(self.spots_data)
+                
+            if not isinstance(data, dict) or 'travel_spots' not in data:
+                raise ValueError("Dataset must be a dict with 'travel_spots' key")
+                
+            if not isinstance(data['travel_spots'], list):
+                raise ValueError("'travel_spots' must be a list")
+                
+            self.spots_data = data['travel_spots']
+            self.total_docs = len(self.spots_data)
+            logger.debug(f"Loaded {self.total_docs} travel spots from {filepath}")
+            
         except FileNotFoundError:
+            logger.error(f"Dataset file not found: {filepath}")
             raise FileNotFoundError(f"Dataset file not found: {filepath}")
         except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in dataset: {str(e)}")
             raise json.JSONDecodeError(f"Invalid JSON in dataset: {str(e)}", e.doc, e.pos)
+        except ValueError as e:
+            logger.error(f"Invalid dataset structure: {str(e)}")
+            raise
     
     def build_index(self) -> None:
         """
@@ -74,13 +95,21 @@ class TravelSpotIndexer:
         - Spot descriptions (tokenized)
         - Moods (for mood-based filtering)
         
+        Raises:
+            ValueError: If dataset has not been loaded
+            
         Must call load_dataset() before this method.
         """
+        if not self.spots_data:
+            raise ValueError("Dataset must be loaded before building index. Call load_dataset() first.")
+            
         # Clear existing indexes
         self.inverted_index.clear()
         self.spot_metadata.clear()
         self.mood_index.clear()
         self.doc_frequencies.clear()
+        self._idf_cache.clear()  # Clear cache when rebuilding
+        logger.debug("Building inverted index for all spots")
         
         for spot in self.spots_data:
             spot_id = spot['id']
@@ -161,6 +190,7 @@ class TravelSpotIndexer:
         IDF = log(total_docs / docs_with_term)
         
         Higher IDF means the term is more unique/discriminative.
+        Results are cached for performance optimization.
         
         Args:
             term: Search term
@@ -168,9 +198,18 @@ class TravelSpotIndexer:
         Returns:
             IDF score (0.0 if term not found)
         """
+        # Return cached result if available
+        if term in self._idf_cache:
+            return self._idf_cache[term]
+            
         if term not in self.doc_frequencies or self.total_docs == 0:
-            return 0.0
-        return math.log(self.total_docs / self.doc_frequencies[term])
+            result = 0.0
+        else:
+            result = math.log(self.total_docs / self.doc_frequencies[term])
+        
+        # Cache the result
+        self._idf_cache[term] = result
+        return result
     
     def get_indexed_spots(self) -> Dict:
         """

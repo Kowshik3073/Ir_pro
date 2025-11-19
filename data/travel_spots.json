@@ -1,245 +1,29 @@
 {
   "travel_spots": [
-    {
-      "id": 1,
-      "name": "Goa Beach",
-      "mood": [
-        "relaxing",
-        "party"
-      ],
-      "budget_min": 2500,
-      "budget_max": 6000,
-      "duration_days": 4,
-      "distance_km": 1500,
-      "rating": 4.5,
-      "best_months": [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february",
-        "march"
-      ],
-      "description": "Goa is India's premier coastal paradise, famous for its stunning beaches, vibrant nightlife, and laid-back atmosphere. Explore pristine sandy shores like Baga, Anjuna, and Colva, perfect for sunbathing and swimming. Experience the region's unique blend of Portuguese and Indian cultures, historic churches, and spice plantations. Adventure seekers can enjoy water sports including parasailing, jet skiing, and surfing. The evenings come alive with beachside bars and clubs offering music and dancing until dawn. Don't miss the Goan cuisine featuring fresh seafood and local delicacies. Perfect for both party enthusiasts and those seeking peaceful beach relaxation."
-    },
-    {
-      "id": 2,
-      "name": "Manali Hill Station",
-      "mood": [
-        "adventure",
-        "nature"
-      ],
-      "budget_min": 3500,
-      "budget_max": 8000,
-      "duration_days": 4,
-      "distance_km": 900,
-      "rating": 4.7,
-      "best_months": [
-        "march",
-        "april",
-        "may",
-        "september",
-        "october"
-      ],
-      "description": "Nestled in the breathtaking Himalayas, Manali is an adventure lover's paradise offering world-class trekking, paragliding, and mountaineering opportunities. The valley features pine forests, rushing rivers, and snow-capped peaks that create a mesmerizing landscape. Visit the sacred Hadimba Temple, explore Old Manali's charming wooden houses, and trek to stunning locations like Bijli Mahadev and Rohtang Pass. The town offers excellent base camps for climbing expeditions and mountain biking. Experience adventure sports including rappelling, rock climbing, and hang-gliding. The local markets sell authentic handicrafts and the cafes offer cozy hangouts with panoramic views. Ideal for adrenaline junkies and nature enthusiasts seeking pristine mountain beauty."
-    },
-    {
-      "id": 3,
-      "name": "Kerala Backwaters",
-      "mood": [
-        "relaxing",
-        "nature",
-        "romantic"
-      ],
-      "budget_min": 3000,
-      "budget_max": 7000,
-      "duration_days": 3,
-      "distance_km": 2000,
-      "rating": 4.6,
-      "best_months": [
-        "september",
-        "october",
-        "november",
-        "december",
-        "january",
-        "february"
-      ],
-      "description": "Kerala's backwaters offer an enchanting cruise through serene waterways lined with coconut palms and traditional fishing villages. Navigate in traditional houseboats (kettuvallams) featuring wood carvings and comfortable cabins, witnessing the daily life of local fishermen and villagers. Explore narrow canals, lagoons, and lakes while enjoying authentic Kerala cuisine featuring fresh coconut and seafood. Visit spice farms, witness sunrise and sunset over tranquil waters, and experience the famous fishing techniques. The calm waters are perfect for couples seeking romantic getaways and families wanting peaceful retreats. Stay in luxurious houseboats with modern amenities or budget-friendly options. Experience rejuvenating Ayurvedic treatments available at resorts. This is truly God's own country."
-    },
-    {
-      "id": 4,
-      "name": "Jaipur City Tour",
-      "mood": [
-        "cultural",
-        "history"
-      ],
-      "budget_min": 2000,
-      "budget_max": 5000,
-      "duration_days": 2,
-      "distance_km": 300,
-      "rating": 4.4,
-      "best_months": [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february",
-        "march"
-      ],
-      "description": "Jaipur, the Pink City, is a vibrant capital of Rajasthan renowned for its impressive architecture and royal heritage. Explore the iconic City Palace, still partially inhabited by the royal family, blending ancient and modern architecture. Marvel at the intricate lattice work of Hawa Mahal (Palace of Winds), one of India's most photographed monuments. Visit the historic Jantar Mantar, an astronomical observation site with fascinating instruments. Wander through colorful bazaars selling traditional textiles, jewelry, and handicrafts. Experience authentic Rajasthani cuisine and hospitality. The city's pink-colored buildings, wide boulevards, and planned layout reflect unique urban design principles. Museums showcase royal artifacts and tribal art. Perfect for history buffs and culture enthusiasts seeking to understand Rajasthan's magnificent past."
-    },
-    {
-      "id": 5,
-      "name": "Leh Ladakh Mountain",
-      "mood": [
-        "adventure",
-        "nature"
-      ],
-      "budget_min": 5500,
-      "budget_max": 12000,
-      "duration_days": 6,
-      "distance_km": 2500,
-      "rating": 4.8,
-      "best_months": [
-        "june",
-        "july",
-        "august",
-        "september"
-      ],
-      "description": "Leh Ladakh is India's most dramatic high-altitude destination, featuring some of the world's most spectacular mountain landscapes. Located at 11,500 feet above sea level, this region offers breathtaking monasteries perched on cliffs, stunning mountain passes, and otherworldly terrain. Explore ancient Tibetan monasteries like Hemis, Tikse, and Lamayuru with their intricate artwork and spiritual significance. Trek to pristine high-altitude lakes including Pangong Tso and Tso Moriri, surrounded by barren mountains reflecting in crystal-clear waters. Challenge yourself with adventurous activities like mountain biking on remote passes, rock climbing, and rafting in the Indus River. Experience unique Ladakhi culture, traditional homestays, and local cuisine. The region offers unparalleled natural beauty for serious adventure seekers and spiritual explorers."
-    },
-    {
-      "id": 6,
-      "name": "Ooty Hill Station",
-      "mood": [
-        "relaxing",
-        "nature"
-      ],
-      "budget_min": 2500,
-      "budget_max": 6000,
-      "duration_days": 3,
-      "distance_km": 800,
-      "rating": 4.3,
-      "best_months": [
-        "march",
-        "april",
-        "may",
-        "june",
-        "september",
-        "october"
-      ],
-      "description": "Ooty, the 'Queen of the Nilgiris,' is a charming hill station nestled in the Western Ghats of Tamil Nadu. Known for its cool climate year-round, lush green tea plantations, and misty hills, Ooty offers a perfect escape from city heat. Visit the famous Botanical Garden with rare plants and walking trails, explore the UNESCO-listed Nilgiri Mountain Railway offering scenic journey through valleys and tunnels. Take a boat ride on the serene Ooty Lake, trek through dense forests to viewpoints like Doddabetta Peak. Experience local culture at the vibrant markets and taste authentic Nilgiri tea at plantations. The town features charming cottages, cozy cafes, and nature resorts. Adventure enthusiasts can engage in mountain biking and trekking, while families enjoy peaceful picnics. Ideal for those seeking respite in a cool, serene mountain environment."
-    },
-    {
-      "id": 7,
-      "name": "Varanasi Spiritual",
-      "mood": [
-        "spiritual",
-        "cultural",
-        "history"
-      ],
-      "budget_min": 1500,
-      "budget_max": 3500,
-      "duration_days": 2,
-      "distance_km": 600,
-      "rating": 4.5,
-      "best_months": [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february"
-      ],
-      "description": "Varanasi, the spiritual heart of India, is one of the world's oldest continuously inhabited cities and most sacred destinations for Hindus. Located on the banks of the holy Ganges River, the city resonates with spiritual energy and ancient wisdom. Witness the mesmerizing Ganga Aarti, a spiritual ceremony performed with lamps and chanting by priests. Walk through narrow galis lined with temples, ashrams, and shops selling religious items. Experience the daily rituals as pilgrims bathe in the sacred river for spiritual purification. Explore ancient temples like Kashi Vishwanath, visit ghats where important rituals take place, and understand India's profound spiritual traditions. The city pulses with energy from dawn prayers and evening prayers. Boat rides on the Ganges offer peaceful contemplation and stunning views. Perfect for spiritual seekers, history enthusiasts, and those wishing to connect with India's sacred essence."
-    },
-    {
-      "id": 8,
-      "name": "Mumbai Night Life",
-      "mood": [
-        "party",
-        "cultural"
-      ],
-      "budget_min": 3500,
-      "budget_max": 9000,
-      "duration_days": 2,
-      "distance_km": 500,
-      "rating": 4.4,
-      "best_months": [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february",
-        "march"
-      ],
-      "description": "Mumbai, India's financial capital, is a vibrant metropolis pulsing with energy, culture, and entertainment. The city offers world-class nightlife with rooftop bars, nightclubs, and lounge cafes offering everything from cocktails to dancing until dawn. Visit iconic landmarks like the Gateway of India, Taj Mahal Palace Hotel, and Marine Drive offering stunning coastal views. Explore diverse neighborhoods from colonial South Mumbai to trendy areas like Bandra. Enjoy authentic street food and fine dining restaurants featuring cuisines from around the world. Museums and galleries showcase Indian art, history, and cinema heritage. Take a ferry to Elephanta Island to explore ancient rock-cut caves. Experience Bollywood culture, attend shows, and visit film studios. The city beaches like Chowpatty offer relaxation among urban buzz. Perfect for night owls, culture enthusiasts, and those seeking cosmopolitan Indian urban experience."
-    },
-    {
-      "id": 9,
-      "name": "Shimla Snow Mountain",
-      "mood": [
-        "adventure",
-        "nature"
-      ],
-      "budget_min": 4000,
-      "budget_max": 8500,
-      "duration_days": 3,
-      "distance_km": 400,
-      "rating": 4.6,
-      "best_months": [
-        "october",
-        "november",
-        "december",
-        "january",
-        "february"
-      ],
-      "description": "Shimla, the capital of Himachal Pradesh, is a picturesque hill station renowned for its colonial architecture, snow-covered peaks, and adventurous opportunities. Perched at 7,238 feet, the town offers breathtaking views of the Himalayas and features Victorian buildings from the British era. Visit historic landmarks like Christ Church, Viceregal Lodge, and the Ridge area offering panoramic vistas. The winter months transform Shimla into a snow paradise, perfect for skiing, snowboarding, and sledding. Summer offers excellent hiking trails to nearby peaks and forests. Explore adventure activities like paragliding, rock climbing, and mountain biking. The toy train ride on the UNESCO-listed Kalka-Shimla Railway offers unforgettable scenic journey through lush valleys. Experience local Himachali cuisine and shop for wool products at markets. The cool climate and serene environment make it ideal for families, couples, and adventure seekers year-round."
-    },
-    {
-      "id": 10,
-      "name": "Rishikesh Yoga",
-      "mood": [
-        "relaxing",
-        "spiritual"
-      ],
-      "budget_min": 2000,
-      "budget_max": 5000,
-      "duration_days": 3,
-      "distance_km": 250,
-      "rating": 4.5,
-      "best_months": [
-        "september",
-        "october",
-        "november",
-        "december",
-        "january",
-        "february",
-        "march"
-      ],
-      "description": "Rishikesh, known as the 'Yoga Capital of the World,' is a serene spiritual town nestled on the banks of the sacred Ganges River. Famous for its numerous ashrams and yoga retreats, the town attracts practitioners from around the globe seeking wellness and spiritual transformation. Practice yoga and meditation in authentic ashrams with experienced gurus, improving flexibility, strength, and mental peace. Experience morning prayers and evening Ganga Aarti ceremonies with devotional chanting. Explore suspension bridges connecting both sides of the river and enjoy scenic walks along the riverbanks. The town offers numerous yoga styles from traditional Hatha to modern Vinyasa. Ayurvedic treatments and wellness centers provide holistic healing. Vegetarian cuisine supports spiritual practice. Adventure seekers enjoy river rafting and camping. Whether you're a dedicated yogi or beginner seeking wellness, Rishikesh offers transformative experiences in a deeply spiritual environment."
-    },
-    {
-      "id": 11,
-      "name": "Tirupathi Spiritual Temple",
-      "mood": [
-        "spiritual",
-        "cultural",
-        "history"
-      ],
-      "budget_min": 1000,
-      "budget_max": 5000,
-      "duration_days": 2,
-      "distance_km": 1800,
-      "rating": 4.9,
-      "best_months": [
-        "january",
-        "february",
-        "march",
-        "october",
-        "november",
-        "december"
-      ],
-      "description": "Tirupathi is a holy pilgrimage destination renowned for its magnificent Sri Venkateswara Temple, one of the world's richest temples. Located on the sacred Tirumala hills, the temple attracts millions of devotees annually seeking divine blessings. The spiritual atmosphere is deeply transformative, with ancient rituals and prayers creating a profound sense of peace. Visitors experience the divine presence through temple ceremonies, devotional chanting, and sacred rituals. The journey uphill to the temple sanctum is a spiritual pilgrimage itself. Extremely budget-friendly accommodation and food are available for pilgrims. The town offers a unique blend of spirituality, history, and cultural significance. Perfect for spiritual seekers, devotees, and those seeking blessing and inner peace."
-    }
+    {"id": 1, "name": "Goa Beach", "mood": ["relaxing", "party"], "budget_min": 2500, "budget_max": 6000, "duration_days": 4, "distance_km": 1500, "rating": 4.5, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Goa Beach is India's premier coastal paradise offering stunning white sandy beaches, vibrant nightlife with world-class clubs and bars, unique Portuguese-influenced architecture, thrilling water sports including parasailing and jet skiing, and delicious fresh seafood cuisine. Perfect for both relaxation and partying. Experience the famous beaches of Baga, Anjuna, and Colva with their laid-back atmosphere and lively beach shacks."},
+    {"id": 2, "name": "Manali Hill Station", "mood": ["adventure", "nature"], "budget_min": 3500, "budget_max": 8000, "duration_days": 4, "distance_km": 900, "rating": 4.7, "best_months": ["march", "april", "may", "september", "october"], "description": "Manali Hill Station is nestled in the breathtaking Himalayas, offering world-class adventure activities including trekking, paragliding, mountaineering, and rock climbing. Surrounded by dense pine forests, rushing rivers, and snow-capped peaks, this destination features sacred temples, adventure sports, beautiful mountain biking trails, and charming villages. Ideal for adrenaline junkies seeking pristine mountain beauty and outdoor adventures."},
+    {"id": 3, "name": "Kerala Backwaters", "mood": ["relaxing", "nature", "romantic"], "budget_min": 3000, "budget_max": 7000, "duration_days": 3, "distance_km": 2000, "rating": 4.6, "best_months": ["september", "october", "november", "december", "january", "february"], "description": "Kerala Backwaters offer enchanting cruises through serene waterways lined with coconut palms and traditional fishing villages. Navigate in traditional houseboats featuring intricate wood carvings, exploring narrow canals and lagoons while witnessing authentic local life. Enjoy fresh Kerala cuisine, visit spice farms, experience sunrise and sunset over tranquil waters, and rejuvenate with Ayurvedic treatments. Perfect for romantic getaways and peaceful family vacations in God's Own Country."},
+    {"id": 4, "name": "Jaipur City Tour", "mood": ["cultural", "history"], "budget_min": 2000, "budget_max": 5000, "duration_days": 2, "distance_km": 300, "rating": 4.4, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Jaipur, the Pink City, is the vibrant capital of Rajasthan renowned for its impressive architecture and royal heritage. Explore the iconic Hawa Mahal (Palace of Winds), one of India's most photographed monuments, the City Palace still inhabited by the royal family, and the Jantar Mantar astronomical observation site. Wander through colorful bazaars selling traditional textiles, jewelry, and handicrafts. Experience authentic Rajasthani hospitality, cuisine, and the city's magnificent urban design."},
+    {"id": 5, "name": "Leh Ladakh Mountain", "mood": ["adventure", "nature"], "budget_min": 5500, "budget_max": 12000, "duration_days": 6, "distance_km": 2500, "rating": 4.8, "best_months": ["june", "july", "august", "september"], "description": "Leh Ladakh is India's most dramatic high-altitude destination located at 11,500 feet above sea level, featuring some of the world's most spectacular mountain landscapes. Explore ancient Tibetan monasteries perched on cliffsides like Hemis, Tikse, and Lamayuru with their intricate artwork and spiritual significance. Trek to pristine high-altitude lakes including Pangong Tso and Tso Moriri surrounded by barren mountains. Challenge yourself with mountain biking, rock climbing, river rafting, and experience unique Ladakhi culture and traditional homestays."},
+    {"id": 6, "name": "Ooty Hill Station", "mood": ["relaxing", "nature"], "budget_min": 2500, "budget_max": 6000, "duration_days": 3, "distance_km": 800, "rating": 4.3, "best_months": ["march", "april", "may", "june", "september", "october"], "description": "Ooty, the Queen of the Nilgiris, is a charming hill station nestled in the Western Ghats of Tamil Nadu with cool climate year-round, lush green tea plantations, and misty hills. Visit the famous Botanical Garden with rare plants and scenic walking trails, ride the UNESCO-listed Nilgiri Mountain Railway offering scenic journeys through valleys and tunnels, take boat rides on serene Ooty Lake, and trek through dense forests to viewpoints like Doddabetta Peak. Experience local culture, taste authentic Nilgiri tea at plantations, and enjoy peaceful mountain picnics."},
+    {"id": 7, "name": "Varanasi Spiritual", "mood": ["spiritual", "cultural", "history"], "budget_min": 1500, "budget_max": 3500, "duration_days": 2, "distance_km": 600, "rating": 4.5, "best_months": ["october", "november", "december", "january", "february"], "description": "Varanasi, the spiritual heart of India and one of the world's oldest continuously inhabited cities, is the holiest destination for Hindus on the banks of the sacred Ganges River. Witness the mesmerizing Ganga Aarti ceremony with lamps and chanting by priests at dawn and dusk, walk through narrow galis lined with temples and ashrams, experience daily rituals as pilgrims bathe in sacred waters for spiritual purification, explore ancient temples like Kashi Vishwanath, and take boat rides on the Ganges. Perfect for spiritual seekers seeking India's profound sacred essence."},
+    {"id": 8, "name": "Mumbai Night Life", "mood": ["party", "cultural"], "budget_min": 3500, "budget_max": 9000, "duration_days": 2, "distance_km": 500, "rating": 4.4, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Mumbai, India's financial capital, is a vibrant metropolis pulsing with energy, culture, and world-class entertainment. The city features rooftop bars, nightclubs, and lounge cafes offering cocktails and dancing until dawn, iconic landmarks like Gateway of India and Taj Mahal Palace Hotel, stunning coastal views from Marine Drive, diverse neighborhoods from colonial South Mumbai to trendy Bandra, authentic street food and fine dining restaurants offering global cuisines. Experience Bollywood culture, attend film studio tours, and enjoy the cosmopolitan Indian urban experience."},
+    {"id": 9, "name": "Shimla Snow Mountain", "mood": ["adventure", "nature"], "budget_min": 4000, "budget_max": 8500, "duration_days": 3, "distance_km": 400, "rating": 4.6, "best_months": ["october", "november", "december", "january", "february"], "description": "Shimla, the capital of Himachal Pradesh, is a picturesque hill station renowned for its Victorian colonial architecture, breathtaking snow-covered peaks, and adventure opportunities. Perched at 7,238 feet offering panoramic Himalayan vistas, featuring historic landmarks like Christ Church and Viceregal Lodge, the Ridge area offering spectacular views, winter snow transforms Shimla into a paradise for skiing, snowboarding, and sledding. Enjoy summer hiking trails through lush forests, rock climbing, mountain biking, and the famous UNESCO-listed Kalka-Shimla toy train. Experience Himachali cuisine and shop for wool products."},
+    {"id": 10, "name": "Rishikesh Yoga", "mood": ["relaxing", "spiritual"], "budget_min": 2000, "budget_max": 5000, "duration_days": 3, "distance_km": 250, "rating": 4.5, "best_months": ["september", "october", "november", "december", "january", "february", "march"], "description": "Rishikesh, known as the Yoga Capital of the World, is a serene spiritual town on the sacred Ganges River banks attracting practitioners globally seeking wellness and spiritual transformation. Practice yoga and meditation in authentic ashrams with experienced gurus, improving flexibility, strength, and mental peace. Experience morning prayers and evening Ganga Aarti ceremonies with devotional chanting, explore suspension bridges connecting river sides, enjoy scenic riverbank walks, Ayurvedic treatments and wellness centers providing holistic healing, vegetarian cuisine supporting spiritual practice, and river rafting. Ideal for yogis and wellness enthusiasts."},
+    {"id": 11, "name": "Tirupathi Spiritual Temple", "mood": ["spiritual", "cultural", "history"], "budget_min": 1000, "budget_max": 5000, "duration_days": 2, "distance_km": 1800, "rating": 4.9, "best_months": ["january", "february", "march", "october", "november", "december"], "description": "Tirupathi is a holy pilgrimage destination renowned for the magnificent Sri Venkateswara Temple, one of the world's richest temples located on the sacred Tirumala hills. Attracting millions of devotees annually seeking divine blessings, the temple showcases ancient rituals, prayers, and ceremonies creating a deeply spiritual atmosphere. The spiritual journey uphill to the sanctum is transformative with ancient spiritual wisdom, devotional chanting, and profound peace. Extremely budget-friendly accommodation and food available for pilgrims. Experience unique spirituality, history, and cultural significance in this most sacred Indian destination. Top-rated for budget-friendly spiritual journeys."},
+    {"id": 12, "name": "Agra Taj Mahal", "mood": ["cultural", "history"], "budget_min": 2000, "budget_max": 5500, "duration_days": 2, "distance_km": 400, "rating": 4.8, "best_months": ["october", "november", "december", "january", "february"], "description": "Agra Taj Mahal is home to the iconic Taj Mahal, one of the world's seven wonders and UNESCO World Heritage site featuring stunning Mughal architecture representing timeless love and romance. This white marble masterpiece built by Emperor Shah Jahan for his beloved wife is breathtaking at sunrise and sunset, surrounded by manicured gardens and reflecting pools. Explore Agra Fort showcasing royal palace splendor, visit beautiful mosques and gardens, experience local bazaars, and taste authentic Mughal cuisine. The monument represents the pinnacle of Mughal architectural achievement with intricate marble inlay work."},
+    {"id": 13, "name": "Mysore Palace", "mood": ["cultural", "history"], "budget_min": 2000, "budget_max": 5000, "duration_days": 2, "distance_km": 1200, "rating": 4.6, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Mysore Palace is a magnificent royal palace showcasing intricate Indo-Saracenic architecture with colorful tile work, ornate interiors, and majestic arches. The palace hosts vibrant festivals and cultural celebrations, featuring heritage sites, beautiful gardens, and South Indian cultural treasures. Explore the palace's royal history, see ceremonial courtyards, artistic decorations, and experience Mysore's rich cultural heritage. The palace illumination at night creates magical atmosphere. Visit nearby Chamundi Hill Temple, enjoy coffee plantations, and taste authentic South Indian cuisine. Perfect for cultural and historical exploration."},
+    {"id": 14, "name": "Darjeeling Tea Gardens", "mood": ["relaxing", "nature"], "budget_min": 3000, "budget_max": 6500, "duration_days": 3, "distance_km": 1500, "rating": 4.5, "best_months": ["march", "april", "may", "september", "october"], "description": "Darjeeling Tea Gardens feature famous Himalayan tea plantations in West Bengal's pristine hills, known worldwide for producing premium Darjeeling tea. The hill station offers stunning Himalayan views including Kanchenjunga mountain, misty valleys, local tribal culture, tea estate tours where you can learn about tea production, trek through lush greenery, and stay in authentic tea garden homestays. Visit the Darjeeling Himalayan Railway toy train offering scenic journeys, explore Buddhist monasteries, experience local markets, and taste freshly brewed Darjeeling tea. Perfect for nature lovers seeking peaceful mountain ambiance."},
+    {"id": 15, "name": "Munnar Hill Station", "mood": ["relaxing", "nature"], "budget_min": 2500, "budget_max": 6000, "duration_days": 3, "distance_km": 1400, "rating": 4.5, "best_months": ["october", "november", "december", "january", "february"], "description": "Munnar Hill Station features misty hills with extensive tea and spice plantations creating picturesque landscapes, scenic valleys, rolling green meadows, and cool mountain climate. The Eravikulam National Park offers wildlife spotting including endangered Nilgiri Tahr, beautiful waterfalls, and nature trails through lush vegetation. Enjoy tea plantation tours and tea factory visits, explore spice gardens, trek through forest trails offering panoramic views, stay in cozy hill resorts, and experience authentic Kerala hospitality. Perfect for nature lovers seeking peaceful mountain retreats with extensive tea gardens and natural beauty."},
+    {"id": 16, "name": "Pushkar Desert", "mood": ["cultural", "adventure"], "budget_min": 2000, "budget_max": 5000, "duration_days": 3, "distance_km": 500, "rating": 4.3, "best_months": ["october", "november", "december", "january", "february"], "description": "Pushkar Desert is a unique desert town centered around the holy Pushkar Lake featuring vibrant annual Pushkar Camel Fair attracting international visitors, traditional markets, and temples. Experience camel safaris through golden sand dunes, witness desert sunsets, explore colorful bazaars selling handicrafts and textiles, participate in cultural celebrations, visit temples with spiritual significance, and stay in desert camps. The town offers unique blend of spirituality, culture, and adventure with authentic Rajasthani experiences, traditional music, local cuisine, and unforgettable desert landscape. Ideal for cultural adventurers."},
+    {"id": 17, "name": "Alleppey Houseboat", "mood": ["relaxing", "romantic"], "budget_min": 4000, "budget_max": 8000, "duration_days": 2, "distance_km": 1900, "rating": 4.7, "best_months": ["september", "october", "november", "december", "january"], "description": "Alleppey Houseboat offers a backwater paradise with luxury houseboat cruises through scenic lagoons, coconut palm-lined canals, and fishing villages. Stay in traditional kettuvallams featuring wood carvings and modern amenities, witness sunset cruises on tranquil waters, observe local fishing techniques, visit spice plantations, and enjoy authentic Kerala cuisine prepared onboard. Perfect for romantic honeymoons and peaceful family vacations with world-class hospitality, serene water landscapes, and cultural immersion. The experience combines luxury relaxation with Kerala's natural beauty, making it ideal for couples seeking romantic getaways."},
+    {"id": 18, "name": "Gulmarg Kashmir", "mood": ["adventure", "nature"], "budget_min": 4000, "budget_max": 8000, "duration_days": 4, "distance_km": 1300, "rating": 4.8, "best_months": ["march", "april", "may", "july", "august"], "description": "Gulmarg Kashmir is an alpine meadow in Jammu & Kashmir offering skiing, snowboarding, and winter sports in world-class snow conditions. The meadow transforms with wildflowers in spring, featuring cable car rides offering panoramic mountain views, adventure sports including hiking and mountain biking, pristine mountain scenery, and adventure trekking opportunities. Experience unique Kashmir culture, stay in comfortable hill resorts, visit golf courses, enjoy local Kashmiri cuisine featuring Wazwan delicacies, and witness breathtaking Himalayan landscapes. Ideal for adventure enthusiasts and nature lovers seeking thrilling mountain experiences."},
+    {"id": 19, "name": "Hampi Ancient Ruins", "mood": ["history", "cultural"], "budget_min": 1500, "budget_max": 4000, "duration_days": 2, "distance_km": 800, "rating": 4.7, "best_months": ["october", "november", "december", "january", "february"], "description": "Hampi Ancient Ruins is a UNESCO World Heritage site featuring magnificent Vijayanagara Empire ruins showcasing ancient Indian architecture, temples with intricate stone carvings, fortifications, and archaeological treasures. Explore numerous temples including Virupaksha and Krishna temples with stunning architecture, climb boulder-strewn hills offering panoramic views, walk through ancient streets and bazaars, visit royal palaces and administrative structures. The ruins reveal sophisticated urban planning and artistic achievements of the 15th-16th century empire. Perfect for history enthusiasts seeking to understand India's glorious ancient heritage."},
+    {"id": 20, "name": "Sikkim Mountains", "mood": ["nature", "adventure"], "budget_min": 4000, "budget_max": 7500, "duration_days": 4, "distance_km": 1800, "rating": 4.6, "best_months": ["march", "april", "may", "september", "october"], "description": "Sikkim Mountains is a northeastern gem featuring snow-capped peaks, ancient Buddhist monasteries with spiritual significance, adventure trekking through pristine mountain landscapes, and rich biodiversity. Explore stunning destinations including Kanchenjunga mountain, Tsomgo Lake reflecting in crystal-clear waters, Nathula Pass offering panoramic views, and dense forests. Experience unique tribal culture, traditional homestays, monastery visits with spiritual teachings, mountain biking, rock climbing, and nature photography opportunities. The state blends natural beauty with spiritual significance, making it perfect for adventure seekers."},
+    {"id": 21, "name": "Ranthambore Tiger Reserve", "mood": ["adventure", "nature"], "budget_min": 3000, "budget_max": 7000, "duration_days": 3, "distance_km": 300, "rating": 4.6, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Ranthambore Tiger Reserve is a premier wildlife sanctuary offering thrilling tiger safaris with high tiger spotting probability, jungle adventures exploring dense forests, and ancient fort ruins within the reserve. Experience guided safari drives at dawn and dusk maximizing wildlife viewing opportunities, photograph endangered Bengal tigers, leopards, and diverse birds, explore Ranthambore Fort showcasing historical significance, enjoy nature photography, and stay in eco-friendly resorts. The reserve combines wildlife adventure with historical exploration, offering unforgettable experiences for nature enthusiasts."},
+    {"id": 22, "name": "Khajuraho Temples", "mood": ["cultural", "history"], "budget_min": 2000, "budget_max": 5000, "duration_days": 2, "distance_km": 700, "rating": 4.5, "best_months": ["october", "november", "december", "january", "february"], "description": "Khajuraho Temples is a UNESCO World Heritage site featuring remarkable medieval temple architecture showcasing intricate stone sculptures and artistic mastery. The temples display stunning architectural styles, with sculptural panels depicting various aspects of life, religious devotion, and cultural traditions from the 10th-11th centuries. Explore numerous temples including Kandariya Mahadev and Lakshmana temples featuring ornate carvings, visit museums displaying archaeological artifacts, experience the magnificent light and sound show, and stay in comfortable hotels. Perfect for architecture enthusiasts and cultural explorers."},
+    {"id": 23, "name": "Coorg Coffee Plantations", "mood": ["relaxing", "nature"], "budget_min": 2500, "budget_max": 5500, "duration_days": 3, "distance_km": 1000, "rating": 4.5, "best_months": ["september", "october", "november", "december", "january"], "description": "Coorg Coffee Plantations feature rolling green plantations with misty valleys, mist-covered hills, scenic valleys, and peaceful ambiance in Western Ghats. Experience coffee estate tours and coffee processing workshops, trek through lush vegetation and ancient forests, visit tribal villages discovering local culture, explore numerous waterfalls and natural springs, enjoy authentic Coorgi cuisine, and stay in cozy homestays amidst plantations. The region combines coffee heritage with natural beauty, serene atmosphere, tribal culture, and adventure opportunities. Perfect for nature lovers and coffee enthusiasts."},
+    {"id": 24, "name": "Udaipur Palace City", "mood": ["romantic", "cultural"], "budget_min": 3000, "budget_max": 7000, "duration_days": 3, "distance_km": 600, "rating": 4.7, "best_months": ["october", "november", "december", "january", "february", "march"], "description": "Udaipur Palace City, known as the Venice of the East, features grand palaces, romantic ambiance, heritage havelis, scenic boat rides on Pichola Lake, and royal Rajasthani charm. Explore the magnificent City Palace showcasing Indo-Saracenic architecture, visit heritage havelis with intricate designs, take romantic boat rides on beautiful lakes, experience cultural performances and festivals, explore colorful bazaars, and enjoy authentic Rajasthani cuisine. The city's romance, architectural splendor, and cultural richness make it perfect for honeymoons and couples' retreats."},
+    {"id": 25, "name": "Maldives Island Getaway", "mood": ["relaxing", "romantic", "party"], "budget_min": 8000, "budget_max": 15000, "duration_days": 5, "distance_km": 1000, "rating": 4.9, "best_months": ["november", "december", "january", "february", "march"], "description": "Maldives Island Getaway offers tropical paradise with overwater bungalows, pristine white sandy beaches, crystal-clear turquoise waters, coral reefs, and luxury relaxation. Experience world-class snorkeling and diving exploring vibrant marine ecosystems, sunset cruises, spa treatments at luxury resorts, water sports activities, and gourmet dining with fresh seafood. The islands feature perfect weather, romantic ambiance, and exclusive resort experiences making it ideal for honeymoons and premium vacations. Perfect for luxury seekers, water sports enthusiasts, and travelers desiring ultimate tropical paradise experiences."}
   ]
 }
