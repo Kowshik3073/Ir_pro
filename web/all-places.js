@@ -6,6 +6,7 @@ class AllPlacesApp {
     constructor() {
         this.userLocation = null;
         this.allSpots = [];
+        this.placeToDelete = null;
         this.cityCoordinates = {
             'mumbai': { lat: 19.0760, lng: 72.8777 },
             'delhi': { lat: 28.7041, lng: 77.1025 },
@@ -56,11 +57,29 @@ class AllPlacesApp {
     }
 
     setupEventListeners() {
-        const modal = document.getElementById('locationModal');
-        if (modal) {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
+        const locationModal = document.getElementById('locationModal');
+        if (locationModal) {
+            locationModal.addEventListener('click', (e) => {
+                if (e.target === locationModal) {
                     this.hideLocationModal();
+                }
+            });
+        }
+
+        const addPlaceModal = document.getElementById('addPlaceModal');
+        if (addPlaceModal) {
+            addPlaceModal.addEventListener('click', (e) => {
+                if (e.target === addPlaceModal) {
+                    this.closeAddPlaceModal();
+                }
+            });
+        }
+
+        const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        if (confirmDeleteModal) {
+            confirmDeleteModal.addEventListener('click', (e) => {
+                if (e.target === confirmDeleteModal) {
+                    this.closeDeleteModal();
                 }
             });
         }
@@ -74,6 +93,23 @@ class AllPlacesApp {
                 }
             });
         }
+
+        // Escape key to close modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const addPlaceModal = document.getElementById('addPlaceModal');
+                const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+                const locationModal = document.getElementById('locationModal');
+                
+                if (addPlaceModal && addPlaceModal.classList.contains('show')) {
+                    this.closeAddPlaceModal();
+                } else if (confirmDeleteModal && confirmDeleteModal.classList.contains('show')) {
+                    this.closeDeleteModal();
+                } else if (locationModal && locationModal.classList.contains('show')) {
+                    this.hideLocationModal();
+                }
+            }
+        });
     }
 
     loadUserLocation() {
@@ -89,7 +125,7 @@ class AllPlacesApp {
 
     async loadAllSpots() {
         try {
-            const response = await fetch('http://localhost:8000/api/all-spots');
+            const response = await fetch('http://localhost:8001/api/all-spots');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -104,28 +140,38 @@ class AllPlacesApp {
 
     displayAllPlaces() {
         const grid = document.getElementById('allPlacesGrid');
+        const loading = document.getElementById('loading');
+        const noResults = document.getElementById('noResults');
+        
         if (!grid) return;
 
         grid.innerHTML = '';
         
+        if (loading) loading.classList.remove('active');
+        
         if (this.allSpots.length === 0) {
-            grid.innerHTML = '<p class="no-results">No destinations available. Please check backend connection.</p>';
+            noResults.classList.add('active');
             return;
         }
+
+        noResults.classList.remove('active');
 
         // Sort spots by rating (highest first)
         const sortedSpots = [...this.allSpots].sort((a, b) => b.rating - a.rating);
 
-        sortedSpots.forEach((spot) => {
+        sortedSpots.forEach((spot, index) => {
             const distance = this.userLocation ? 
                 this.calculateDistance(this.userLocation, spot.name) : null;
             
             const card = document.createElement('div');
-            card.className = 'all-place-card';
+            card.className = 'place-card';
             
             let distanceHtml = '';
             if (distance !== null) {
-                distanceHtml = `<div class="distance-info">📍 ${distance} km away</div>`;
+                distanceHtml = `<div class="detail-badge highlight">
+                    <span class="detail-label">📍 Distance</span>
+                    <span class="detail-value">${distance} km</span>
+                </div>`;
             }
 
             // Format best months
@@ -134,26 +180,36 @@ class AllPlacesApp {
                 : 'Year-round';
             
             card.innerHTML = `
-                <div class="card-content">
-                    <div class="card-rating">⭐ ${spot.rating}</div>
-                    <h3>${spot.name}</h3>
-                    <div class="card-moods">
-                        ${spot.moods.map(mood => `<span class="mood-tag">${mood}</span>`).join('')}
+                <button class="delete-btn" onclick="allPlacesApp.showDeleteModal(${spot.id}, '${spot.name}')">✕</button>
+                <div class="card-header">
+                    <h3 class="place-name">${spot.name}</h3>
+                    <div class="rating-badge">⭐ ${spot.rating}</div>
+                </div>
+                
+                <div class="moods-container">
+                    ${spot.moods.map(mood => `<span class="mood-tag">${mood}</span>`).join('')}
+                </div>
+                
+                <div class="card-details">
+                    <div class="detail-badge">
+                        <span class="detail-label">💰 Budget</span>
+                        <span class="detail-value">${spot.budget}</span>
                     </div>
-                    <div class="card-details">
-                        <div class="detail-item">💰 ${spot.budget}</div>
-                        <div class="detail-item">⏰ ${spot.duration}</div>
-                        <div class="detail-item">📅 Best: ${bestMonths}</div>
-                        ${distanceHtml}
+                    <div class="detail-badge">
+                        <span class="detail-label">⏱️ Duration</span>
+                        <span class="detail-value">${spot.duration}</span>
                     </div>
+                    <div class="detail-badge">
+                        <span class="detail-label">📅 Best Time</span>
+                        <span class="detail-value">${bestMonths}</span>
+                    </div>
+                    ${distanceHtml}
                 </div>
             `;
             
             grid.appendChild(card);
         });
-    }
-
-    calculateDistance(userCity, destinationName) {
+    }    calculateDistance(userCity, destinationName) {
         const userCoords = this.cityCoordinates[userCity.toLowerCase()];
         if (!userCoords) return null;
 
@@ -251,19 +307,228 @@ class AllPlacesApp {
     }
 
     showError(message) {
-        const grid = document.getElementById('allPlacesGrid');
-        if (grid) {
-            grid.innerHTML = `
-                <div style="grid-column: 1/-1; color: #FF6B6B; padding: 40px; text-align: center; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);">
-                    ${message}
-                </div>
+        const loading = document.getElementById('loading');
+        const noResults = document.getElementById('noResults');
+        
+        if (loading) loading.classList.remove('active');
+        if (noResults) {
+            noResults.classList.add('active');
+            noResults.innerHTML = `
+                <div class="no-results-icon">⚠️</div>
+                <p class="no-results-text">${message}</p>
             `;
+        }
+    }    capitalizeFirst(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    showAddPlaceModal() {
+        const modal = document.getElementById('addPlaceModal');
+        if (modal) {
+            modal.classList.add('show');
+            document.getElementById('addPlaceForm').reset();
+            // Focus on first input for better UX
+            document.getElementById('placeName').focus();
         }
     }
 
-    capitalizeFirst(str) {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
+    closeAddPlaceModal() {
+        const modal = document.getElementById('addPlaceModal');
+        if (modal) {
+            modal.classList.remove('show');
+            document.getElementById('addPlaceForm').reset();
+            this.clearFormErrors();
+        }
+    }
+
+    clearFormErrors() {
+        const form = document.getElementById('addPlaceForm');
+        if (form) {
+            form.querySelectorAll('.form-group').forEach(group => {
+                group.classList.remove('error');
+            });
+        }
+    }
+
+    showFormError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            const group = field.closest('.form-group');
+            if (group) {
+                group.classList.add('error');
+                let errorEl = group.querySelector('.form-error');
+                if (!errorEl) {
+                    errorEl = document.createElement('div');
+                    errorEl.className = 'form-error';
+                    group.appendChild(errorEl);
+                }
+                errorEl.textContent = message;
+            }
+        }
+    }
+
+    validateAddPlaceForm() {
+        this.clearFormErrors();
+        let isValid = true;
+
+        const name = document.getElementById('placeName').value.trim();
+        const moods = document.getElementById('placeMoods').value.trim();
+        const desc = document.getElementById('placeDescription').value.trim();
+        const budgetMin = parseInt(document.getElementById('budgetMin').value);
+        const budgetMax = parseInt(document.getElementById('budgetMax').value);
+        const duration = parseInt(document.getElementById('duration').value);
+        const distance = parseInt(document.getElementById('distance').value);
+        const rating = parseFloat(document.getElementById('rating').value);
+
+        if (!name) {
+            this.showFormError('placeName', 'Place name is required');
+            isValid = false;
+        } else if (name.length < 3) {
+            this.showFormError('placeName', 'Place name must be at least 3 characters');
+            isValid = false;
+        }
+
+        if (!moods) {
+            this.showFormError('placeMoods', 'At least one mood is required');
+            isValid = false;
+        }
+
+        if (!desc) {
+            this.showFormError('placeDescription', 'Description is required');
+            isValid = false;
+        } else if (desc.length < 20) {
+            this.showFormError('placeDescription', 'Description must be at least 20 characters');
+            isValid = false;
+        }
+
+        if (isNaN(budgetMin) || budgetMin < 0) {
+            this.showFormError('budgetMin', 'Valid budget min required');
+            isValid = false;
+        }
+
+        if (isNaN(budgetMax) || budgetMax < budgetMin) {
+            this.showFormError('budgetMax', 'Max budget must be >= min budget');
+            isValid = false;
+        }
+
+        if (isNaN(duration) || duration < 1) {
+            this.showFormError('duration', 'Duration must be at least 1 day');
+            isValid = false;
+        }
+
+        if (isNaN(distance) || distance < 0) {
+            this.showFormError('distance', 'Valid distance required');
+            isValid = false;
+        }
+
+        if (isNaN(rating) || rating < 0 || rating > 5) {
+            this.showFormError('rating', 'Rating must be between 0-5');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    async submitAddPlace(event) {
+        event.preventDefault();
+
+        // Validate form
+        if (!this.validateAddPlaceForm()) {
+            return;
+        }
+
+        const form = document.getElementById('addPlaceForm');
+        const submitBtn = form.querySelector('.form-btn.submit');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Adding...';
+
+        const newPlace = {
+            name: document.getElementById('placeName').value.trim(),
+            mood: document.getElementById('placeMoods').value.split(',').map(m => m.trim()),
+            description: document.getElementById('placeDescription').value.trim(),
+            budget_min: parseInt(document.getElementById('budgetMin').value),
+            budget_max: parseInt(document.getElementById('budgetMax').value),
+            duration_days: parseInt(document.getElementById('duration').value),
+            distance_km: parseInt(document.getElementById('distance').value),
+            rating: parseFloat(document.getElementById('rating').value),
+            best_months: document.getElementById('bestMonths').value 
+                ? document.getElementById('bestMonths').value.split(',').map(m => m.trim())
+                : []
+        };
+
+        try {
+            const response = await fetch('http://localhost:8001/api/add-place', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newPlace)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Success feedback
+            submitBtn.textContent = '✅ Added!';
+            submitBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            
+            setTimeout(() => {
+                this.closeAddPlaceModal();
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                submitBtn.style.background = '';
+                // Reload places
+                this.loadAllSpots().then(() => this.displayAllPlaces());
+            }, 1000);
+        } catch (error) {
+            console.error('Error adding place:', error);
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+            alert('❌ Error adding place. Please try again.');
+        }
+    }
+
+    showDeleteModal(placeId, placeName) {
+        this.placeToDelete = { id: placeId, name: placeName };
+        const modal = document.getElementById('confirmDeleteModal');
+        const text = document.getElementById('confirmDeleteText');
+        if (modal && text) {
+            text.textContent = `Are you sure you want to delete "${placeName}"? This action cannot be undone.`;
+            modal.classList.add('show');
+        }
+    }
+
+    closeDeleteModal() {
+        const modal = document.getElementById('confirmDeleteModal');
+        if (modal) {
+            modal.classList.remove('show');
+            this.placeToDelete = null;
+        }
+    }
+
+    async confirmDelete() {
+        if (!this.placeToDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:8001/api/remove-place/${this.placeToDelete.id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            alert(`✅ "${this.placeToDelete.name}" has been deleted!`);
+            this.closeDeleteModal();
+            await this.loadAllSpots();
+            this.displayAllPlaces();
+        } catch (error) {
+            console.error('Error deleting place:', error);
+            alert('❌ Error deleting place. Please try again.');
+        }
     }
 }
 

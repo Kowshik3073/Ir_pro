@@ -3,122 +3,243 @@
     {
       "id": 1,
       "name": "Goa Beach",
-      "mood": ["relaxing", "party"],
+      "mood": [
+        "relaxing",
+        "party"
+      ],
       "budget_min": 2500,
       "budget_max": 6000,
       "duration_days": 4,
       "distance_km": 1500,
       "rating": 4.5,
-      "best_months": ["october", "november", "december", "january", "february", "march"],
-      "description": "Popular beach destination with nightlife, water sports and scenic sunsets"
+      "best_months": [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february",
+        "march"
+      ],
+      "description": "Goa is India's premier coastal paradise, famous for its stunning beaches, vibrant nightlife, and laid-back atmosphere. Explore pristine sandy shores like Baga, Anjuna, and Colva, perfect for sunbathing and swimming. Experience the region's unique blend of Portuguese and Indian cultures, historic churches, and spice plantations. Adventure seekers can enjoy water sports including parasailing, jet skiing, and surfing. The evenings come alive with beachside bars and clubs offering music and dancing until dawn. Don't miss the Goan cuisine featuring fresh seafood and local delicacies. Perfect for both party enthusiasts and those seeking peaceful beach relaxation."
     },
     {
       "id": 2,
       "name": "Manali Hill Station",
-      "mood": ["adventure", "nature"],
+      "mood": [
+        "adventure",
+        "nature"
+      ],
       "budget_min": 3500,
       "budget_max": 8000,
       "duration_days": 4,
       "distance_km": 900,
       "rating": 4.7,
-      "best_months": ["march", "april", "may", "september", "october"],
-      "description": "Mountain hill station perfect for trekking, paragliding and scenic views"
+      "best_months": [
+        "march",
+        "april",
+        "may",
+        "september",
+        "october"
+      ],
+      "description": "Nestled in the breathtaking Himalayas, Manali is an adventure lover's paradise offering world-class trekking, paragliding, and mountaineering opportunities. The valley features pine forests, rushing rivers, and snow-capped peaks that create a mesmerizing landscape. Visit the sacred Hadimba Temple, explore Old Manali's charming wooden houses, and trek to stunning locations like Bijli Mahadev and Rohtang Pass. The town offers excellent base camps for climbing expeditions and mountain biking. Experience adventure sports including rappelling, rock climbing, and hang-gliding. The local markets sell authentic handicrafts and the cafes offer cozy hangouts with panoramic views. Ideal for adrenaline junkies and nature enthusiasts seeking pristine mountain beauty."
     },
     {
       "id": 3,
       "name": "Kerala Backwaters",
-      "mood": ["relaxing", "nature", "romantic"],
+      "mood": [
+        "relaxing",
+        "nature",
+        "romantic"
+      ],
       "budget_min": 3000,
       "budget_max": 7000,
       "duration_days": 3,
       "distance_km": 2000,
       "rating": 4.6,
-      "best_months": ["september", "october", "november", "december", "january", "february"],
-      "description": "Serene backwaters with houseboats, coconut plantations and scenic beauty"
+      "best_months": [
+        "september",
+        "october",
+        "november",
+        "december",
+        "january",
+        "february"
+      ],
+      "description": "Kerala's backwaters offer an enchanting cruise through serene waterways lined with coconut palms and traditional fishing villages. Navigate in traditional houseboats (kettuvallams) featuring wood carvings and comfortable cabins, witnessing the daily life of local fishermen and villagers. Explore narrow canals, lagoons, and lakes while enjoying authentic Kerala cuisine featuring fresh coconut and seafood. Visit spice farms, witness sunrise and sunset over tranquil waters, and experience the famous fishing techniques. The calm waters are perfect for couples seeking romantic getaways and families wanting peaceful retreats. Stay in luxurious houseboats with modern amenities or budget-friendly options. Experience rejuvenating Ayurvedic treatments available at resorts. This is truly God's own country."
     },
     {
       "id": 4,
       "name": "Jaipur City Tour",
-      "mood": ["cultural", "history"],
+      "mood": [
+        "cultural",
+        "history"
+      ],
       "budget_min": 2000,
       "budget_max": 5000,
       "duration_days": 2,
       "distance_km": 300,
       "rating": 4.4,
-      "best_months": ["october", "november", "december", "january", "february", "march"],
-      "description": "Famous for Pink City architecture, City Palace, Hawa Mahal and historical monuments"
+      "best_months": [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february",
+        "march"
+      ],
+      "description": "Jaipur, the Pink City, is a vibrant capital of Rajasthan renowned for its impressive architecture and royal heritage. Explore the iconic City Palace, still partially inhabited by the royal family, blending ancient and modern architecture. Marvel at the intricate lattice work of Hawa Mahal (Palace of Winds), one of India's most photographed monuments. Visit the historic Jantar Mantar, an astronomical observation site with fascinating instruments. Wander through colorful bazaars selling traditional textiles, jewelry, and handicrafts. Experience authentic Rajasthani cuisine and hospitality. The city's pink-colored buildings, wide boulevards, and planned layout reflect unique urban design principles. Museums showcase royal artifacts and tribal art. Perfect for history buffs and culture enthusiasts seeking to understand Rajasthan's magnificent past."
     },
     {
       "id": 5,
       "name": "Leh Ladakh Mountain",
-      "mood": ["adventure", "nature"],
+      "mood": [
+        "adventure",
+        "nature"
+      ],
       "budget_min": 5500,
       "budget_max": 12000,
       "duration_days": 6,
       "distance_km": 2500,
       "rating": 4.8,
-      "best_months": ["june", "july", "august", "september"],
-      "description": "High altitude adventure mountain destination with stunning Himalayan landscapes"
+      "best_months": [
+        "june",
+        "july",
+        "august",
+        "september"
+      ],
+      "description": "Leh Ladakh is India's most dramatic high-altitude destination, featuring some of the world's most spectacular mountain landscapes. Located at 11,500 feet above sea level, this region offers breathtaking monasteries perched on cliffs, stunning mountain passes, and otherworldly terrain. Explore ancient Tibetan monasteries like Hemis, Tikse, and Lamayuru with their intricate artwork and spiritual significance. Trek to pristine high-altitude lakes including Pangong Tso and Tso Moriri, surrounded by barren mountains reflecting in crystal-clear waters. Challenge yourself with adventurous activities like mountain biking on remote passes, rock climbing, and rafting in the Indus River. Experience unique Ladakhi culture, traditional homestays, and local cuisine. The region offers unparalleled natural beauty for serious adventure seekers and spiritual explorers."
     },
     {
       "id": 6,
       "name": "Ooty Hill Station",
-      "mood": ["relaxing", "nature"],
+      "mood": [
+        "relaxing",
+        "nature"
+      ],
       "budget_min": 2500,
       "budget_max": 6000,
       "duration_days": 3,
       "distance_km": 800,
       "rating": 4.3,
-      "best_months": ["march", "april", "may", "june", "september", "october"],
-      "description": "Cool climate hill station with beautiful gardens, tea plantations and trekking"
+      "best_months": [
+        "march",
+        "april",
+        "may",
+        "june",
+        "september",
+        "october"
+      ],
+      "description": "Ooty, the 'Queen of the Nilgiris,' is a charming hill station nestled in the Western Ghats of Tamil Nadu. Known for its cool climate year-round, lush green tea plantations, and misty hills, Ooty offers a perfect escape from city heat. Visit the famous Botanical Garden with rare plants and walking trails, explore the UNESCO-listed Nilgiri Mountain Railway offering scenic journey through valleys and tunnels. Take a boat ride on the serene Ooty Lake, trek through dense forests to viewpoints like Doddabetta Peak. Experience local culture at the vibrant markets and taste authentic Nilgiri tea at plantations. The town features charming cottages, cozy cafes, and nature resorts. Adventure enthusiasts can engage in mountain biking and trekking, while families enjoy peaceful picnics. Ideal for those seeking respite in a cool, serene mountain environment."
     },
     {
       "id": 7,
       "name": "Varanasi Spiritual",
-      "mood": ["spiritual", "cultural", "history"],
+      "mood": [
+        "spiritual",
+        "cultural",
+        "history"
+      ],
       "budget_min": 1500,
       "budget_max": 3500,
       "duration_days": 2,
       "distance_km": 600,
       "rating": 4.5,
-      "best_months": ["october", "november", "december", "january", "february"],
-      "description": "Sacred city with spiritual significance, ancient temples, ghats and cultural heritage"
+      "best_months": [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february"
+      ],
+      "description": "Varanasi, the spiritual heart of India, is one of the world's oldest continuously inhabited cities and most sacred destinations for Hindus. Located on the banks of the holy Ganges River, the city resonates with spiritual energy and ancient wisdom. Witness the mesmerizing Ganga Aarti, a spiritual ceremony performed with lamps and chanting by priests. Walk through narrow galis lined with temples, ashrams, and shops selling religious items. Experience the daily rituals as pilgrims bathe in the sacred river for spiritual purification. Explore ancient temples like Kashi Vishwanath, visit ghats where important rituals take place, and understand India's profound spiritual traditions. The city pulses with energy from dawn prayers and evening prayers. Boat rides on the Ganges offer peaceful contemplation and stunning views. Perfect for spiritual seekers, history enthusiasts, and those wishing to connect with India's sacred essence."
     },
     {
       "id": 8,
       "name": "Mumbai Night Life",
-      "mood": ["party", "cultural"],
+      "mood": [
+        "party",
+        "cultural"
+      ],
       "budget_min": 3500,
       "budget_max": 9000,
       "duration_days": 2,
       "distance_km": 500,
       "rating": 4.4,
-      "best_months": ["october", "november", "december", "january", "february", "march"],
-      "description": "Vibrant city with nightlife, beaches, cultural attractions and modern restaurants"
+      "best_months": [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february",
+        "march"
+      ],
+      "description": "Mumbai, India's financial capital, is a vibrant metropolis pulsing with energy, culture, and entertainment. The city offers world-class nightlife with rooftop bars, nightclubs, and lounge cafes offering everything from cocktails to dancing until dawn. Visit iconic landmarks like the Gateway of India, Taj Mahal Palace Hotel, and Marine Drive offering stunning coastal views. Explore diverse neighborhoods from colonial South Mumbai to trendy areas like Bandra. Enjoy authentic street food and fine dining restaurants featuring cuisines from around the world. Museums and galleries showcase Indian art, history, and cinema heritage. Take a ferry to Elephanta Island to explore ancient rock-cut caves. Experience Bollywood culture, attend shows, and visit film studios. The city beaches like Chowpatty offer relaxation among urban buzz. Perfect for night owls, culture enthusiasts, and those seeking cosmopolitan Indian urban experience."
     },
     {
       "id": 9,
       "name": "Shimla Snow Mountain",
-      "mood": ["adventure", "nature"],
+      "mood": [
+        "adventure",
+        "nature"
+      ],
       "budget_min": 4000,
       "budget_max": 8500,
       "duration_days": 3,
       "distance_km": 400,
       "rating": 4.6,
-      "best_months": ["october", "november", "december", "january", "february"],
-      "description": "Snow-covered mountain hills perfect for winter sports, trekking and sightseeing"
+      "best_months": [
+        "october",
+        "november",
+        "december",
+        "january",
+        "february"
+      ],
+      "description": "Shimla, the capital of Himachal Pradesh, is a picturesque hill station renowned for its colonial architecture, snow-covered peaks, and adventurous opportunities. Perched at 7,238 feet, the town offers breathtaking views of the Himalayas and features Victorian buildings from the British era. Visit historic landmarks like Christ Church, Viceregal Lodge, and the Ridge area offering panoramic vistas. The winter months transform Shimla into a snow paradise, perfect for skiing, snowboarding, and sledding. Summer offers excellent hiking trails to nearby peaks and forests. Explore adventure activities like paragliding, rock climbing, and mountain biking. The toy train ride on the UNESCO-listed Kalka-Shimla Railway offers unforgettable scenic journey through lush valleys. Experience local Himachali cuisine and shop for wool products at markets. The cool climate and serene environment make it ideal for families, couples, and adventure seekers year-round."
     },
     {
       "id": 10,
       "name": "Rishikesh Yoga",
-      "mood": ["relaxing", "spiritual"],
+      "mood": [
+        "relaxing",
+        "spiritual"
+      ],
       "budget_min": 2000,
       "budget_max": 5000,
       "duration_days": 3,
       "distance_km": 250,
       "rating": 4.5,
-      "best_months": ["september", "october", "november", "december", "january", "february", "march"],
-      "description": "Yoga and meditation hub with ashrams, river activities and spiritual retreats"
+      "best_months": [
+        "september",
+        "october",
+        "november",
+        "december",
+        "january",
+        "february",
+        "march"
+      ],
+      "description": "Rishikesh, known as the 'Yoga Capital of the World,' is a serene spiritual town nestled on the banks of the sacred Ganges River. Famous for its numerous ashrams and yoga retreats, the town attracts practitioners from around the globe seeking wellness and spiritual transformation. Practice yoga and meditation in authentic ashrams with experienced gurus, improving flexibility, strength, and mental peace. Experience morning prayers and evening Ganga Aarti ceremonies with devotional chanting. Explore suspension bridges connecting both sides of the river and enjoy scenic walks along the riverbanks. The town offers numerous yoga styles from traditional Hatha to modern Vinyasa. Ayurvedic treatments and wellness centers provide holistic healing. Vegetarian cuisine supports spiritual practice. Adventure seekers enjoy river rafting and camping. Whether you're a dedicated yogi or beginner seeking wellness, Rishikesh offers transformative experiences in a deeply spiritual environment."
+    },
+    {
+      "id": 11,
+      "name": "Tirupathi Spiritual Temple",
+      "mood": [
+        "spiritual",
+        "cultural",
+        "history"
+      ],
+      "budget_min": 1000,
+      "budget_max": 5000,
+      "duration_days": 2,
+      "distance_km": 1800,
+      "rating": 4.9,
+      "best_months": [
+        "january",
+        "february",
+        "march",
+        "october",
+        "november",
+        "december"
+      ],
+      "description": "Tirupathi is a holy pilgrimage destination renowned for its magnificent Sri Venkateswara Temple, one of the world's richest temples. Located on the sacred Tirumala hills, the temple attracts millions of devotees annually seeking divine blessings. The spiritual atmosphere is deeply transformative, with ancient rituals and prayers creating a profound sense of peace. Visitors experience the divine presence through temple ceremonies, devotional chanting, and sacred rituals. The journey uphill to the temple sanctum is a spiritual pilgrimage itself. Extremely budget-friendly accommodation and food are available for pilgrims. The town offers a unique blend of spirituality, history, and cultural significance. Perfect for spiritual seekers, devotees, and those seeking blessing and inner peace."
     }
   ]
 }

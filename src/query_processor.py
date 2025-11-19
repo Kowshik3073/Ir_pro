@@ -1,53 +1,70 @@
 """
-Query Processor: Parses user queries and converts them into structured constraints
+Query Processor: Parses user queries and extracts structured constraints
+
+Converts natural language user queries into structured search constraints
+that can be used by the ranking system to find relevant travel spots.
+
+Features:
+- Place name extraction
+- Budget amount parsing
+- Mood keyword detection
+- Duration extraction
+- Distance constraint parsing
+- Best months identification
 """
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import re
 
 
 class QueryProcessor:
     """
     Processes natural language queries from users.
-    Extracts budget, mood, duration, and distance constraints.
+    Extracts budget, mood, duration, distance, and location constraints.
     """
     
-    # Mood keywords mapping
+    # Mood keywords mapping - organized by category
     MOOD_KEYWORDS = {
-        'adventure': ['adventure', 'trekking', 'hiking', 'extreme', 'thrill'],
-        'nature': ['nature', 'wildlife', 'forest', 'scenic', 'landscape'],
-        'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest'],
-        'party': ['party', 'nightlife', 'disco', 'club', 'fun', 'dance'],
-        'cultural': ['culture', 'cultural', 'heritage', 'art', 'museum'],
+        'adventure': ['adventure', 'trekking', 'hiking', 'extreme', 'thrill', 'trek', 'climb'],
+        'nature': ['nature', 'wildlife', 'forest', 'scenic', 'landscape', 'hill', 'mountain', 'snow'],
+        'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest', 'beach', 'backwater'],
+        'party': ['party', 'nightlife', 'disco', 'club', 'fun', 'dance', 'night'],
+        'cultural': ['culture', 'cultural', 'heritage', 'art', 'museum', 'city', 'tour'],
         'history': ['history', 'historical', 'ancient', 'monument', 'temple'],
         'spiritual': ['spiritual', 'meditation', 'yoga', 'zen', 'peace'],
         'romantic': ['romantic', 'couple', 'honeymoon', 'love']
     }
     
+    # Place name mappings for common queries
+    PLACE_NAME_MAPPINGS = {
+        'manali': 'Manali Hill Station',
+        'goa': 'Goa Beach',
+        'kerala': 'Kerala Backwaters',
+        'kochi': 'Kerala Backwaters',
+        'backwaters': 'Kerala Backwaters',
+        'leh': 'Leh Ladakh Mountain',
+        'ladakh': 'Leh Ladakh Mountain',
+        'ooty': 'Ooty Hill Station',
+        'shimla': 'Shimla Snow Mountain',
+        'jaipur': 'Jaipur City Tour',
+        'varanasi': 'Varanasi Spiritual',
+        'mumbai': 'Mumbai Night Life',
+        'rishikesh': 'Rishikesh Yoga',
+        'tirupathi': 'tirupathi'
+    }
+    
     def __init__(self):
+        """Initialize the query processor"""
         self.query = ""
         self.constraints = {}
     
     def _extract_place_name(self) -> None:
-        """Extract place name from query"""
-        # List of known place names
-        place_names = {
-            'manali': 'Manali Hill Station',
-            'goa': 'Goa Beach',
-            'kerala': 'Kerala Backwaters',
-            'kochi': 'Kerala Backwaters',
-            'backwaters': 'Kerala Backwaters',
-            'leh': 'Leh Ladakh Mountain',
-            'ladakh': 'Leh Ladakh Mountain',
-            'ooty': 'Ooty Hill Station',
-            'shimla': 'Shimla Snow Mountain',
-            'jaipur': 'Jaipur City Tour',
-            'varanasi': 'Varanasi Spiritual',
-            'mumbai': 'Mumbai Night Life',
-            'rishikesh': 'Rishikesh Yoga'
-        }
+        """
+        Extract place name from query.
         
-        for key, place in place_names.items():
-            if key in self.query:
+        Checks for known place names in the query and extracts them.
+        """
+        for key, place in self.PLACE_NAME_MAPPINGS.items():
+            if key in self.query.lower():
                 self.constraints['place_name'] = place
                 return
     
@@ -86,15 +103,30 @@ class QueryProcessor:
     
     def process_query(self, query: str) -> Dict:
         """
-        Parse query string and extract constraints.
+        Parse query string and extract all constraints.
+        
+        Processes a natural language query and extracts structured constraints
+        for place name, budget, mood, duration, distance, and best months.
         
         Example queries:
         - "manali" -> searches for Manali destination
         - "beach november" -> beach mood with best months = november
         - "I have 5000 rupees, want adventure for 4 days within 1000km"
         - "Budget 3000, mood: relaxing, 2 days"
+        
+        Args:
+            query: Natural language query string
+            
+        Returns:
+            Dictionary of extracted constraints with keys:
+            - budget_max: Maximum budget in rupees
+            - mood: List of mood preferences
+            - duration_days: Trip duration in days
+            - distance_km: Maximum distance in km
+            - place_name: Specific place if mentioned
+            - best_months: List of preferred months
         """
-        self.query = query.lower()
+        self.query = query.lower().strip()
         self.constraints = {
             'budget_max': None,
             'mood': [],
@@ -104,6 +136,7 @@ class QueryProcessor:
             'best_months': []
         }
         
+        # Extract all constraints from query
         self._extract_place_name()
         self._extract_budget()
         self._extract_mood()
@@ -114,46 +147,50 @@ class QueryProcessor:
         return self.constraints
     
     def _extract_budget(self) -> None:
-        """Extract budget constraint from query"""
-        # Check for "cheap" keyword first
-        if 'cheap' in self.query or 'budget' in self.query or 'afford' in self.query:
-            # For cheap/budget queries, set max to 3500 (affordable range)
-            self.constraints['budget_max'] = 3500
-            return
+        """
+        Extract budget constraint from query.
         
-        # Patterns: "5000", "budget 5000", "rupees 5000", etc.
+        Supports multiple formats:
+        - "1000" - just a number
+        - "budget 1000"
+        - "1000 rupees"
+        - "I have 1000 rupees"
+        - "cheap" / "budget-friendly" -> 3500 default
+        
+        CRITICAL: Extract actual numbers FIRST before applying defaults
+        """
+        # Try to extract actual budget numbers first (highest priority)
         patterns = [
-            r'(?:budget|rupees|rs|inr)[\s:]+(\d+)',
-            r'(\d+)\s*(?:rupees|rs|inr)',
-            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?[\s:]*(\d+)'
+            r'(?:budget|rupees|rs|inr)[\s:]+(\d+)',  # budget: 5000 or rupees 5000
+            r'(\d+)\s*(?:rupees|rs|inr)',              # 5000 rupees
+            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?[\s:]*(\d+)',  # upto 5000
+            r'^(\d+)$',                                 # just "5000"
         ]
         
         for pattern in patterns:
             match = re.search(pattern, self.query)
             if match:
                 self.constraints['budget_max'] = int(match.group(1))
-                break
+                return  # Found actual number, don't apply defaults
+        
+        # If no number found, check for budget-related keywords with defaults
+        if 'cheap' in self.query or 'afford' in self.query:
+            self.constraints['budget_max'] = 3500  # Default affordable budget
     
     def _extract_mood(self) -> None:
-        """Extract mood constraints from query"""
+        """
+        Extract mood constraints from query.
+        
+        Searches for mood keywords and adds matching moods to constraints.
+        Uses an enhanced keyword list for better destination matching.
+        """
         moods_found = set()
         
-        # Add keywords for better destination matching
-        enhanced_keywords = {
-            'adventure': ['adventure', 'trekking', 'hiking', 'extreme', 'thrill', 'trek', 'climb'],
-            'nature': ['nature', 'wildlife', 'forest', 'scenic', 'landscape', 'hill', 'mountain', 'snow'],
-            'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest', 'beach', 'backwater'],
-            'party': ['party', 'nightlife', 'disco', 'club', 'fun', 'dance', 'night'],
-            'cultural': ['culture', 'cultural', 'heritage', 'art', 'museum', 'city', 'tour'],
-            'history': ['history', 'historical', 'ancient', 'monument', 'temple'],
-            'spiritual': ['spiritual', 'meditation', 'yoga', 'zen', 'peace'],
-            'romantic': ['romantic', 'couple', 'honeymoon', 'love']
-        }
-        
-        for mood, keywords in enhanced_keywords.items():
+        for mood, keywords in self.MOOD_KEYWORDS.items():
             for keyword in keywords:
-                if keyword in self.query:
+                if keyword in self.query.lower():
                     moods_found.add(mood)
+                    break  # Found this mood, move to next
         
         self.constraints['mood'] = list(moods_found) if moods_found else []
     

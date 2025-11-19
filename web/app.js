@@ -3,7 +3,7 @@
 
 class TravelRecommendationApp {
     constructor() {
-        this.baseURL = 'http://localhost:8000'; // Python server URL
+        this.baseURL = 'http://localhost:8001'; // Python server URL
         this.userLocation = localStorage.getItem('userLocation') || null;
         this.locationCoordinates = {
             // Major Indian cities for distance calculation

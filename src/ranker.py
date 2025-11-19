@@ -42,31 +42,42 @@ class TravelSpotRanker:
     def _calculate_relevance_score(self, spot_id: int, metadata: Dict, constraints: Dict) -> float:
         """
         Calculate relevance score for a spot.
-        Factors: place_name (highest), name_boost, mood, best_months, budget, duration, distance
+        
+        Weighted factors:
+        - Budget (25%): Most important for user satisfaction
+        - Name/Destination type (20%): Ensures right category of place
+        - Mood (25%): User preference matching
+        - Best months (15%): Travel planning
+        - Duration (10%): Time availability
+        - Distance (5%): Accessibility
         """
         score = 0.0
         
-        # CRITICAL: Place Name Match (50% weight if exact place name specified)
-        # This is the HIGHEST priority - direct destination match
-        place_name_boost = 0.0
-        if constraints.get('place_name'):
-            # Check if this is the exact destination being searched for
-            if constraints['place_name'].lower() == metadata['name'].lower():
-                # Perfect match!
-                place_name_boost = 1.0
-                score += place_name_boost * 0.50  # 50% weight for place name match
-            else:
-                # Not the exact place being searched for, but might match a keyword
-                # Use keyword matching with reduced weight
-                name_boost = self._calculate_name_boost(metadata['name'], constraints)
-                score += name_boost * 0.25  # Only 25% for keyword match when place name specified
+        # 1. BUDGET SCORE (25% weight) - HIGHEST PRIORITY
+        # When user specifies budget, exact/close matches should rank highest
+        if constraints.get('budget_max'):
+            budget_score = self._calculate_budget_score(
+                metadata['budget_min'],
+                metadata['budget_max'],
+                constraints['budget_max']
+            )
+            score += budget_score * 0.25
         else:
-            # No explicit place name search, use keyword matching
-            # 0. Destination Name Keyword Boost (40% weight)
-            name_boost = self._calculate_name_boost(metadata['name'], constraints)
-            score += name_boost * 0.40
+            score += 0.5 * 0.25
         
-        # 1. Best Months Match (15% weight)
+        # 2. MOOD SCORE (25% weight) - HIGH PRIORITY
+        if constraints.get('mood'):
+            mood_score = self._calculate_mood_score(metadata['mood'], constraints['mood'])
+            score += mood_score * 0.25
+        else:
+            score += 0.5 * 0.25
+        
+        # 3. Place Name/Destination Type Boost (20% weight)
+        # This ensures we're matching the right category of destination
+        name_boost = self._calculate_name_boost(metadata['name'], constraints)
+        score += name_boost * 0.20
+        
+        # 4. Best Months Match (15% weight)
         if constraints.get('best_months'):
             months_boost = self._calculate_months_boost(
                 metadata.get('best_months', []),
@@ -76,75 +87,58 @@ class TravelSpotRanker:
         else:
             score += 0.5 * 0.15
         
-        # 2. Mood Score (20% weight)
-        if constraints.get('mood'):
-            mood_score = self._calculate_mood_score(metadata['mood'], constraints['mood'])
-            score += mood_score * 0.20
-        else:
-            score += 0.5 * 0.20
-        
-        # 3. Budget Score (10% weight)
-        if constraints.get('budget_max'):
-            budget_score = self._calculate_budget_score(
-                metadata['budget_min'],
-                metadata['budget_max'],
-                constraints['budget_max']
-            )
-            score += budget_score * 0.10
-        else:
-            score += 0.5 * 0.10
-        
-        # 4. Duration Score (3% weight)
+        # 5. Duration Score (10% weight)
         if constraints.get('duration_days'):
             duration_score = self._calculate_duration_score(
                 metadata['duration_days'],
                 constraints['duration_days']
             )
-            score += duration_score * 0.03
+            score += duration_score * 0.10
         else:
-            score += 0.5 * 0.03
+            score += 0.5 * 0.10
         
-        # 5. Distance Score (2% weight)
+        # 6. Distance Score (5% weight) - LOWEST PRIORITY
         if constraints.get('distance_km'):
             distance_score = self._calculate_distance_score(
                 metadata['distance_km'],
                 constraints['distance_km']
             )
-            score += distance_score * 0.02
+            score += distance_score * 0.05
         else:
-            score += 0.5 * 0.02
+            score += 0.5 * 0.05
         
         return score
     
     def _calculate_name_boost(self, spot_name: str, constraints: Dict) -> float:
         """
-        CRITICAL: Boost score if spot name directly matches mood constraints.
-        This is the MOST IMPORTANT factor - ensures "hill" shows ONLY hills!
+        Boost score if spot name contains tourism/destination keywords.
+        
+        Ensures proper destination type matching. Lower weight (20%) than
+        budget/mood since name is mostly for categorization.
         """
         spot_name_lower = spot_name.lower()
         
-        # TIER 1: EXACT KEYWORDS - ABSOLUTE MAXIMUM (1.0)
-        # These are 100% relevant to the query
-        tier1_keywords = ['hill', 'mountain', 'snow', 'leh', 'ladakh']
+        # TIER 1: PRIMARY DESTINATION TYPES - HIGH BOOST (0.9)
+        tier1_keywords = ['beach', 'backwater', 'spiritual', 'devotion']
         for keyword in tier1_keywords:
             if keyword in spot_name_lower:
-                return 1.0  # ABSOLUTE MAXIMUM SCORE
+                return 0.9
         
-        # TIER 2: STRONG SECONDARY KEYWORDS (0.75)
-        tier2_keywords = ['backwater', 'beach', 'yoga']
+        # TIER 2: SECONDARY DESTINATION TYPES (0.85)
+        tier2_keywords = ['hill', 'mountain', 'snow', 'leh', 'ladakh', 'yoga']
         for keyword in tier2_keywords:
+            if keyword in spot_name_lower:
+                return 0.85
+        
+        # TIER 3: SPECIALTY KEYWORDS (0.75)
+        tier3_keywords = ['night', 'life', 'city', 'tour']
+        for keyword in tier3_keywords:
             if keyword in spot_name_lower:
                 return 0.75
         
-        # TIER 3: WEAK KEYWORDS (0.5)
-        tier3_keywords = ['city', 'tour', 'spiritual', 'night', 'life']
-        for keyword in tier3_keywords:
-            if keyword in spot_name_lower:
-                return 0.5
-        
-        # DEFAULT: No name match at all (0.1)
-        # This heavily penalizes non-matching destinations
-        return 0.1
+        # DEFAULT: Generic name (0.5)
+        # Don't heavily penalize names without keywords
+        return 0.5
     
     def _calculate_months_boost(self, spot_best_months: List[str], user_months: List[str]) -> float:
         """
@@ -161,15 +155,46 @@ class TravelSpotRanker:
     def _calculate_budget_score(self, budget_min: int, budget_max: int, user_budget: int) -> float:
         """
         Score based on budget fit.
-        Score = 1.0 if user budget is within spot range, else penalize
+        CRITICAL: Places where budget_min matches or is close to user's budget get highest score
+        This ensures newly added affordable places rank first when searching by budget
+        
+        Scoring strategy:
+        - Perfect match (budget = budget_min): 1.0 (user gets exact budget they need)
+        - Very close (±₹500): 0.98-0.95
+        - Within range: 0.90 (acceptable)
+        - Slightly over budget: 0.85 (manageable)
+        - Moderately over: 0.75
+        - Way over: < 0.50
         """
         if budget_min <= user_budget <= budget_max:
-            return 1.0  # Perfect fit - 100 points
+            # User budget is within the spot's budget range
+            # BOOST SCORE if budget_min is close to user's budget (newly added affordable places)
+            budget_gap = abs(user_budget - budget_min)
+            
+            if budget_gap == 0:
+                # PERFECT MATCH - user budget matches destination's minimum
+                # This gives maximum priority to affordable options
+                return 1.0
+            elif budget_gap <= 500:
+                # Very close to minimum budget - prioritize affordable options
+                return 0.98
+            elif budget_gap <= 1000:
+                # Reasonably close
+                return 0.95
+            else:
+                # Within range but not at minimum
+                return 0.90
         elif user_budget < budget_min:
             # User budget is too low - penalize significantly
             deficit = budget_min - user_budget
-            penalty = min(deficit / budget_min, 0.7)  # Max 70% penalty
-            return max(0.3, 1.0 - penalty)
+            # CRITICAL: Less penalty if deficit is small (user can spend a bit more)
+            if deficit <= 500:
+                return 0.85  # Only slightly over budget
+            elif deficit <= 1000:
+                return 0.75  # Moderately over budget
+            else:
+                penalty = min(deficit / budget_min, 0.7)  # Max 70% penalty
+                return max(0.3, 1.0 - penalty)
         else:
             # User budget is higher than needed
             # More expensive spots get lower score when user wants cheap
@@ -224,7 +249,9 @@ class TravelSpotRanker:
     
     def explain_score(self, spot_id: int, metadata: Dict, constraints: Dict) -> Dict:
         """
-        Provide breakdown of score components for explanation
+        Provide detailed breakdown of score components for a spot.
+        
+        Helps users understand why a destination was ranked in a certain position.
         """
         explanation = {
             'spot_id': spot_id,
@@ -232,27 +259,7 @@ class TravelSpotRanker:
             'components': {}
         }
         
-        # CRITICAL: Add name_boost (40% weight) - this is the DOMINANT factor
-        name_boost = self._calculate_name_boost(metadata['name'], constraints)
-        explanation['components']['name_boost'] = {
-            'score': round(name_boost * 0.40, 3),
-            'reason': f"Destination name '{metadata['name']}' matching keywords (boost multiplier: {name_boost})"
-        }
-        
-        # Mood (35% weight)
-        if constraints.get('mood'):
-            mood_score = self._calculate_mood_score(metadata['mood'], constraints['mood'])
-            explanation['components']['mood'] = {
-                'score': round(mood_score * 0.35, 3),
-                'reason': f"Spot moods: {metadata['mood']}, requested: {constraints['mood']}"
-            }
-        else:
-            explanation['components']['mood'] = {
-                'score': round(0.5 * 0.35, 3),
-                'reason': f"No mood specified (default score)"
-            }
-        
-        # Budget (15% weight)
+        # Budget (25% weight) - HIGHEST IMPACT
         if constraints.get('budget_max'):
             budget_score = self._calculate_budget_score(
                 metadata['budget_min'],
@@ -260,45 +267,81 @@ class TravelSpotRanker:
                 constraints['budget_max']
             )
             explanation['components']['budget'] = {
-                'score': round(budget_score * 0.15, 3),
-                'reason': f"Budget ₹{metadata['budget_min']}-{metadata['budget_max']}, user has ₹{constraints['budget_max']}"
+                'score': round(budget_score * 0.25, 3),
+                'reason': f"Budget ₹{metadata['budget_min']}-{metadata['budget_max']}, you have ₹{constraints['budget_max']}"
             }
         else:
             explanation['components']['budget'] = {
-                'score': round(0.5 * 0.15, 3),
-                'reason': f"No budget specified (default score)"
+                'score': round(0.5 * 0.25, 3),
+                'reason': "No budget specified (default score)"
             }
         
-        # Duration (7% weight)
+        # Mood (25% weight)
+        if constraints.get('mood'):
+            mood_score = self._calculate_mood_score(metadata['mood'], constraints['mood'])
+            explanation['components']['mood'] = {
+                'score': round(mood_score * 0.25, 3),
+                'reason': f"Moods: {metadata['mood']}, you want: {constraints['mood']}"
+            }
+        else:
+            explanation['components']['mood'] = {
+                'score': round(0.5 * 0.25, 3),
+                'reason': "No mood specified (default score)"
+            }
+        
+        # Destination Type (20% weight)
+        name_boost = self._calculate_name_boost(metadata['name'], constraints)
+        explanation['components']['destination_type'] = {
+            'score': round(name_boost * 0.20, 3),
+            'reason': f"Destination type: '{metadata['name']}' (boost: {name_boost})"
+        }
+        
+        # Best Months (15% weight)
+        if constraints.get('best_months'):
+            months_boost = self._calculate_months_boost(
+                metadata.get('best_months', []),
+                constraints['best_months']
+            )
+            explanation['components']['best_months'] = {
+                'score': round(months_boost * 0.15, 3),
+                'reason': f"Best months: {metadata.get('best_months', [])}, you prefer: {constraints['best_months']}"
+            }
+        else:
+            explanation['components']['best_months'] = {
+                'score': round(0.5 * 0.15, 3),
+                'reason': "No months specified (default score)"
+            }
+        
+        # Duration (10% weight)
         if constraints.get('duration_days'):
             duration_score = self._calculate_duration_score(
                 metadata['duration_days'],
                 constraints['duration_days']
             )
             explanation['components']['duration'] = {
-                'score': round(duration_score * 0.07, 3),
-                'reason': f"Duration {metadata['duration_days']} days, user has {constraints['duration_days']} days"
+                'score': round(duration_score * 0.10, 3),
+                'reason': f"Duration {metadata['duration_days']} days, you have {constraints['duration_days']} days"
             }
         else:
             explanation['components']['duration'] = {
-                'score': round(0.5 * 0.07, 3),
-                'reason': f"No duration specified (default score)"
+                'score': round(0.5 * 0.10, 3),
+                'reason': "No duration specified (default score)"
             }
         
-        # Distance (3% weight)
+        # Distance (5% weight)
         if constraints.get('distance_km'):
             distance_score = self._calculate_distance_score(
                 metadata['distance_km'],
                 constraints['distance_km']
             )
             explanation['components']['distance'] = {
-                'score': round(distance_score * 0.03, 3),
-                'reason': f"Distance {metadata['distance_km']}km, user limit {constraints['distance_km']}km"
+                'score': round(distance_score * 0.05, 3),
+                'reason': f"Distance {metadata['distance_km']}km, your limit {constraints['distance_km']}km"
             }
         else:
             explanation['components']['distance'] = {
-                'score': round(0.5 * 0.03, 3),
-                'reason': f"No distance specified (default score)"
+                'score': round(0.5 * 0.05, 3),
+                'reason': "No distance specified (default score)"
             }
         
         return explanation
