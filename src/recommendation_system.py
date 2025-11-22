@@ -1,13 +1,13 @@
 """
-Main Recommendation System: Orchestrates indexing, query processing, and ranking
+Core Recommendation Engine: Coordinates indexing, query interpretation, and scoring
 
-Implements a complete Information Retrieval pipeline:
-1. Query Processing: Convert natural language to structured constraints
-2. Ranking: Score and rank travel spots based on constraints  
-3. Formatting: Return results with explanations
+Delivers a comprehensive Information Retrieval workflow:
+1. Query Interpretation: Transform natural language to structured filters
+2. Scoring: Compute and order destinations based on filters  
+3. Presentation: Return results with explanations
 
-Author: Travel Recommendation Team
-Version: 2.0
+Development Team: Destination Discovery Platform
+Release: 2.0
 """
 import logging
 from typing import Dict, List
@@ -21,44 +21,44 @@ logger = logging.getLogger(__name__)
 
 class TravelSpotRecommendationSystem:
     """
-    Complete IR system for travel spot recommendations.
+    Comprehensive IR engine for destination recommendations.
     
-    Pipeline: Query -> Process -> Rank -> Explain -> Return results
+    Workflow: Query -> Interpret -> Score -> Explain -> Return results
     
-    Components:
-    - Indexer: Manages inverted index and metadata
-    - QueryProcessor: Extracts constraints from natural language
-    - Ranker: Scores and ranks spots based on constraints
+    Core Modules:
+    - Indexer: Handles reverse index and metadata
+    - QueryProcessor: Parses filters from natural language
+    - Ranker: Computes and orders destinations based on filters
     """
     
     def __init__(self, dataset_path: str):
         """
-        Initialize the recommendation system with dataset.
+        Set up the recommendation engine with dataset.
         
         Args:
-            dataset_path: Path to travel_spots.json dataset file
+            dataset_path: Location of travel_spots.json dataset file
             
         Raises:
-            FileNotFoundError: If dataset file doesn't exist
-            json.JSONDecodeError: If dataset file is invalid JSON
+            FileNotFoundError: If dataset file is missing
+            json.JSONDecodeError: If dataset file has invalid JSON
         """
         try:
-            self.indexer = TravelSpotIndexer()
-            self.query_processor = QueryProcessor()
+            self.data_indexer = TravelSpotIndexer()
+            self.query_interpreter = QueryProcessor()
             
-            # Load and index dataset
-            self.indexer.load_dataset(dataset_path)
-            self.indexer.build_index()
+            # Import and index dataset
+            self.data_indexer.load_dataset(dataset_path)
+            self.data_indexer.build_index()
             
-            self.ranker = TravelSpotRanker(self.indexer)
-            logger.info(f"System initialized with {len(self.indexer.spot_metadata)} travel spots")
-        except Exception as e:
-            logger.error(f"Failed to initialize recommendation system: {str(e)}")
+            self.scoring_engine = TravelSpotRanker(self.data_indexer)
+            logger.info(f"Engine initialized with {len(self.data_indexer.destination_info)} destinations")
+        except Exception as initialization_error:
+            logger.error(f"Failed to initialize recommendation engine: {str(initialization_error)}")
             raise
     
     def recommend_with_explanation(self, user_query: str, top_k: int = 5) -> Dict:
         """
-        Get travel spot recommendations with full details and explanation.
+        Get destination recommendations with complete details and explanation.
         
         Args:
             user_query: Natural language query from user
@@ -66,88 +66,88 @@ class TravelSpotRecommendationSystem:
         
         Returns:
             Dictionary containing:
-            - recommendations: List of recommended spots
+            - recommendations: List of recommended destinations
             - total_results: Total number of matching results
-            - parsed_constraints: The constraints extracted from query
+            - parsed_constraints: The filters extracted from query
         """
         try:
-            # Step 1: Process query to extract constraints
-            constraints = self.query_processor.process_query(user_query)
-            logger.debug(f"Query processed: {constraints}")
+            # Phase 1: Interpret query to extract filters
+            extracted_filters = self.query_interpreter.process_query(user_query)
+            logger.debug(f"Query interpreted: {extracted_filters}")
             
-            # Step 2: Rank spots based on constraints
-            ranked_results = self.ranker.rank_spots(constraints, top_k=top_k)
+            # Phase 2: Score destinations based on filters
+            scored_destinations = self.scoring_engine.rank_spots(extracted_filters, top_k=top_k)
             
-            # Step 3: Format results for return
-            recommendations = []
-            for rank, (spot_id, score, metadata) in enumerate(ranked_results, 1):
-                rec = {
-                    'rank': rank,
-                    'spot_id': spot_id,
-                    'name': metadata['name'],
-                    'relevance_score': round(score, 4),
-                    'moods': metadata['mood'],
-                    'budget_range': f"₹{metadata['budget_min']}-{metadata['budget_max']}",
-                    'budget_min': metadata['budget_min'],
-                    'budget_max': metadata['budget_max'],
-                    'duration_days': metadata['duration_days'],
-                    'distance_km': metadata['distance_km'],
-                    'rating': metadata['rating'],
-                    'best_months': metadata.get('best_months', []),
-                    'description': metadata['description']
+            # Phase 3: Format results for output
+            formatted_recommendations = []
+            for position, (destination_id, relevance_score, destination_data) in enumerate(scored_destinations, 1):
+                recommendation_entry = {
+                    'rank': position,
+                    'spot_id': destination_id,
+                    'name': destination_data['name'],
+                    'relevance_score': round(relevance_score, 4),
+                    'moods': destination_data['mood'],
+                    'budget_range': f"₹{destination_data['budget_min']}-{destination_data['budget_max']}",
+                    'budget_min': destination_data['budget_min'],
+                    'budget_max': destination_data['budget_max'],
+                    'duration_days': destination_data['duration_days'],
+                    'distance_km': destination_data['distance_km'],
+                    'rating': destination_data['rating'],
+                    'best_months': destination_data.get('best_months', []),
+                    'description': destination_data['description']
                 }
-                recommendations.append(rec)
+                formatted_recommendations.append(recommendation_entry)
             
-            logger.info(f"Generated {len(recommendations)} recommendations for query: '{user_query}'")
+            logger.info(f"Generated {len(formatted_recommendations)} recommendations for query: '{user_query}'")
             
             return {
-                'recommendations': recommendations,
-                'total_results': len(recommendations),
-                'parsed_constraints': constraints
+                'recommendations': formatted_recommendations,
+                'total_results': len(formatted_recommendations),
+                'parsed_constraints': extracted_filters
             }
             
-        except Exception as e:
-            logger.error(f"Error generating recommendations: {str(e)}")
+        except Exception as processing_error:
+            logger.error(f"Error generating recommendations: {str(processing_error)}")
             raise
 
     def recommend(self, user_query: str, top_k: int = 5) -> List[Dict]:
         """
-        Wrapper for backward compatibility.
+        Compatibility wrapper.
         Returns just the list of recommendations.
         """
-        result = self.recommend_with_explanation(user_query, top_k)
-        return result['recommendations']
+        output = self.recommend_with_explanation(user_query, top_k)
+        return output['recommendations']
     
     def get_all_spots(self) -> List[Dict]:
         """
-        Get all indexed travel spots.
+        Get all indexed destinations.
         
         Useful for displaying complete destination catalog.
         
         Returns:
-            List of all spots with basic metadata
+            List of all destinations with basic metadata
         """
         try:
-            spots = [
+            all_destinations = [
                 {
-                    'id': spot_id,
-                    'name': metadata['name'],
-                    'moods': metadata['mood'],
-                    'budget': f"₹{metadata['budget_min']}-{metadata['budget_max']}",
-                    'budget_min': metadata['budget_min'],
-                    'budget_max': metadata['budget_max'],
-                    'duration': f"{metadata['duration_days']} days",
-                    'duration_days': metadata['duration_days'],
-                    'distance': f"{metadata['distance_km']} km",
-                    'distance_km': metadata['distance_km'],
-                    'rating': metadata['rating'],
-                    'best_months': metadata.get('best_months', []),
-                    'description': metadata['description']
+                    'id': destination_id,
+                    'name': destination_data['name'],
+                    'moods': destination_data['mood'],
+                    'budget': f"₹{destination_data['budget_min']}-{destination_data['budget_max']}",
+                    'budget_min': destination_data['budget_min'],
+                    'budget_max': destination_data['budget_max'],
+                    'duration': f"{destination_data['duration_days']} days",
+                    'duration_days': destination_data['duration_days'],
+                    'distance': f"{destination_data['distance_km']} km",
+                    'distance_km': destination_data['distance_km'],
+                    'rating': destination_data['rating'],
+                    'best_months': destination_data.get('best_months', []),
+                    'description': destination_data['description']
                 }
-                for spot_id, metadata in self.indexer.spot_metadata.items()
+                for destination_id, destination_data in self.data_indexer.destination_info.items()
             ]
-            logger.info(f"Returned {len(spots)} total spots")
-            return spots
-        except Exception as e:
-            logger.error(f"Error retrieving all spots: {str(e)}")
+            logger.info(f"Returned {len(all_destinations)} total destinations")
+            return all_destinations
+        except Exception as retrieval_error:
+            logger.error(f"Error retrieving all destinations: {str(retrieval_error)}")
             raise

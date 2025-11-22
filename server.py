@@ -1,11 +1,11 @@
 """
-HTTP Server for Travel Recommendation System
+Web Server for Destination Recommendation Engine
 
-Provides REST API endpoints for travel spot recommendations.
-Serves the web frontend and handles all API requests.
+Delivers REST API endpoints for destination recommendations.
+Hosts the web interface and processes all API calls.
 
-Author: Travel Recommendation Team
-Version: 2.0
+Development Team: Destination Discovery Platform
+Release: 2.0
 """
 import json
 import os
@@ -15,14 +15,14 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
-# Setup logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] %(levelname)s: %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Add parent directory to path to import src modules
+# Include parent directory in path for src module imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.recommendation_system import TravelSpotRecommendationSystem
@@ -30,51 +30,51 @@ from src.recommendation_system import TravelSpotRecommendationSystem
 
 class APIRequestHandler(SimpleHTTPRequestHandler):
     """
-    HTTP Request Handler for API and static files
+    HTTP Request Handler for API calls and static content
     
-    Handles:
-    - GET requests for API endpoints and static files
-    - POST requests for recommendations and adding places
-    - DELETE requests for removing places
+    Processes:
+    - GET requests for API endpoints and static resources
+    - POST requests for recommendations and place additions
+    - DELETE requests for place removals
     - OPTIONS requests for CORS preflight
     """
     
     def __init__(self, *args, **kwargs):
-        """Initialize handler with web directory"""
+        """Set up handler with web directory"""
         super().__init__(*args, directory=str(Path(__file__).parent / 'web'), **kwargs)
     
     def end_headers(self):
-        """Add CORS headers to all responses"""
+        """Append CORS headers to all responses"""
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         super().end_headers()
     
     def do_OPTIONS(self):
-        """Handle CORS preflight requests"""
+        """Process CORS preflight requests"""
         self.send_response(200)
         self.end_headers()
     
     def do_POST(self):
-        """Handle POST requests for API"""
+        """Process POST requests for API"""
         if self.path == '/api/recommend':
-            self.handle_recommend()
+            self.process_recommendation_request()
         else:
             self.send_error(404)
     
     def do_GET(self):
-        """Handle GET requests"""
+        """Process GET requests"""
         if self.path == '/api/all-spots':
-            self.handle_all_spots()
+            self.process_all_spots_request()
         elif self.path == '/api/health':
-            self.handle_health()
+            self.process_health_check()
         else:
-            # Serve static files
+            # Deliver static resources
             super().do_GET()
     
-    def handle_recommend(self):
+    def process_recommendation_request(self):
         """
-        Handle recommendation request.
+        Process recommendation request.
         
         Expected JSON:
         {
@@ -92,122 +92,122 @@ class APIRequestHandler(SimpleHTTPRequestHandler):
         }
         """
         try:
-            content_length = int(self.headers.get('Content-Length', 0))
-            if content_length == 0:
-                return self.send_error_response(400, "Request body is empty")
+            payload_size = int(self.headers.get('Content-Length', 0))
+            if payload_size == 0:
+                return self.deliver_error_response(400, "Request payload is missing")
                 
-            body = self.rfile.read(content_length).decode('utf-8')
-            data = json.loads(body)
+            request_body = self.rfile.read(payload_size).decode('utf-8')
+            request_data = json.loads(request_body)
             
-            query = data.get('query', '').strip()
-            top_k = data.get('top_k', 5)
+            user_query = request_data.get('query', '').strip()
+            result_count = request_data.get('top_k', 5)
             
-            if not query:
-                return self.send_error_response(400, "Query is required and cannot be empty")
+            if not user_query:
+                return self.deliver_error_response(400, "Query field is required and must not be empty")
             
-            if not isinstance(top_k, int) or top_k < 1:
-                return self.send_error_response(400, "top_k must be a positive integer")
+            if not isinstance(result_count, int) or result_count < 1:
+                return self.deliver_error_response(400, "top_k must be a positive integer")
             
-            if top_k > 100:  # Reasonable upper limit
-                return self.send_error_response(400, "top_k cannot exceed 100")
+            if result_count > 100:  # Reasonable upper bound
+                return self.deliver_error_response(400, "top_k cannot exceed 100")
             
-            # Get recommendations from system
-            result = recommendation_system.recommend_with_explanation(query, top_k=top_k)
+            # Fetch recommendations from engine
+            recommendation_output = recommendation_engine.recommend_with_explanation(user_query, top_k=result_count)
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             
-            response = {
+            api_response = {
                 'success': True,
-                'query': query,
-                'recommendations': result['recommendations'],
-                'total_results': result['total_results'],
-                'parsed_constraints': result['parsed_constraints']
+                'query': user_query,
+                'recommendations': recommendation_output['recommendations'],
+                'total_results': recommendation_output['total_results'],
+                'parsed_constraints': recommendation_output['parsed_constraints']
             }
             
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-            logger.info(f"Recommendation request: query='{query}', top_k={top_k}, results={result['total_results']}")
+            self.wfile.write(json.dumps(api_response).encode('utf-8'))
+            logger.info(f"Recommendation query: query='{user_query}', top_k={result_count}, results={recommendation_output['total_results']}")
             
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in request: {str(e)}")
-            self.send_error_response(400, "Invalid JSON in request body")
-        except ValueError as e:
-            logger.error(f"Value error in recommendation: {str(e)}")
-            self.send_error_response(400, f"Invalid input: {str(e)}")
-        except Exception as e:
-            logger.error(f"Error in recommendation: {str(e)}", exc_info=True)
-            self.send_error_response(500, f"Recommendation error: {str(e)}")
+        except json.JSONDecodeError as json_error:
+            logger.error(f"Malformed JSON in request: {str(json_error)}")
+            self.deliver_error_response(400, "Malformed JSON in request payload")
+        except ValueError as value_error:
+            logger.error(f"Value error in recommendation: {str(value_error)}")
+            self.deliver_error_response(400, f"Invalid input: {str(value_error)}")
+        except Exception as general_error:
+            logger.error(f"Error in recommendation: {str(general_error)}", exc_info=True)
+            self.deliver_error_response(500, f"Recommendation error: {str(general_error)}")
     
-    def handle_all_spots(self):
+    def process_all_spots_request(self):
         """
-        Handle request for all destinations.
+        Process request for all destinations.
         
-        Returns: List of all travel spots with metadata
+        Returns: List of all destinations with metadata
         """
         try:
-            spots = recommendation_system.get_all_spots()
+            all_destinations = recommendation_engine.get_all_spots()
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             
-            response = {
+            api_response = {
                 'success': True,
-                'spots': spots,
-                'total_spots': len(spots)
+                'spots': all_destinations,
+                'total_spots': len(all_destinations)
             }
             
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-            logger.info(f"All spots request: returned {len(spots)} spots")
+            self.wfile.write(json.dumps(api_response).encode('utf-8'))
+            logger.info(f"All destinations request: returned {len(all_destinations)} destinations")
             
-        except Exception as e:
-            logger.error(f"Error retrieving spots: {str(e)}")
-            self.send_error_response(500, f"Error retrieving spots: {str(e)}")
+        except Exception as retrieval_error:
+            logger.error(f"Error retrieving destinations: {str(retrieval_error)}")
+            self.deliver_error_response(500, f"Error retrieving destinations: {str(retrieval_error)}")
     
-    def handle_health(self):
-        """Health check endpoint"""
+    def process_health_check(self):
+        """Health verification endpoint"""
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         
-        response = {
+        health_response = {
             'status': 'healthy',
             'service': 'Travel Recommendation API'
         }
         
-        self.wfile.write(json.dumps(response).encode('utf-8'))
+        self.wfile.write(json.dumps(health_response).encode('utf-8'))
     
-    def send_error_response(self, code: int, message: str) -> None:
+    def deliver_error_response(self, status_code: int, error_message: str) -> None:
         """
-        Send a JSON error response.
+        Deliver a JSON error response.
         
         Args:
-            code: HTTP status code
-            message: Error message
+            status_code: HTTP status code
+            error_message: Error description
             
         Raises:
-            ValueError: If code is not a valid HTTP status code
+            ValueError: If status_code is not a valid HTTP code
         """
-        if not 100 <= code < 600:
-            raise ValueError(f"Invalid HTTP status code: {code}")
+        if not 100 <= status_code < 600:
+            raise ValueError(f"Invalid HTTP status code: {status_code}")
             
-        self.send_response(code)
+        self.send_response(status_code)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         
-        response = {
+        error_response = {
             'success': False,
-            'error': message,
-            'code': code
+            'error': error_message,
+            'code': status_code
         }
         
-        self.wfile.write(json.dumps(response).encode('utf-8'))
-        logger.warning(f"Error response: {code} - {message}")
+        self.wfile.write(json.dumps(error_response).encode('utf-8'))
+        logger.warning(f"Error response: {status_code} - {error_message}")
     
     @staticmethod
     def _get_dataset_path() -> str:
-        """Get the path to the dataset file"""
+        """Retrieve the path to the dataset file"""
         return os.path.join(os.path.dirname(__file__), 'data', 'travel_spots.json')
     
     def log_message(self, format: str, *args) -> None:
@@ -215,37 +215,37 @@ class APIRequestHandler(SimpleHTTPRequestHandler):
         logger.info(f"[{self.client_address[0]}] {format % args}")
 
 
-# Initialize recommendation system globally
-def setup_recommendation_system() -> TravelSpotRecommendationSystem:
+# Set up recommendation engine globally
+def initialize_recommendation_engine() -> TravelSpotRecommendationSystem:
     """
-    Setup and initialize the recommendation system.
+    Configure and initialize the recommendation engine.
     
     Returns:
         Initialized TravelSpotRecommendationSystem instance
     """
-    dataset_path = os.path.join(os.path.dirname(__file__), 'data', 'travel_spots.json')
-    system = TravelSpotRecommendationSystem(dataset_path)
-    logger.info("Recommendation system initialized successfully")
-    return system
+    data_file_path = os.path.join(os.path.dirname(__file__), 'data', 'travel_spots.json')
+    engine = TravelSpotRecommendationSystem(data_file_path)
+    logger.info("Recommendation engine initialized successfully")
+    return engine
 
 
 def main():
     """Main entry point for the server"""
     try:
-        # Setup recommendation system
-        global recommendation_system
-        recommendation_system = setup_recommendation_system()
+        # Configure recommendation engine
+        global recommendation_engine
+        recommendation_engine = initialize_recommendation_engine()
         
-        # Start server
-        PORT = 8001
-        server_address = ('', PORT)
-        httpd = HTTPServer(server_address, APIRequestHandler)
+        # Launch server
+        SERVER_PORT = 8001
+        server_bind_address = ('', SERVER_PORT)
+        http_server = HTTPServer(server_bind_address, APIRequestHandler)
         
         logger.info("=" * 60)
         logger.info("Travel Recommendation System - Backend Server")
         logger.info("=" * 60)
-        logger.info(f"Server running on http://localhost:{PORT}")
-        logger.info(f"Web Interface: http://localhost:{PORT}/index.html")
+        logger.info(f"Server running on http://localhost:{SERVER_PORT}")
+        logger.info(f"Web Interface: http://localhost:{SERVER_PORT}/index.html")
         logger.info("")
         logger.info("API Endpoints:")
         logger.info("  POST   /api/recommend        - Get recommendations")
@@ -255,13 +255,13 @@ def main():
         logger.info("Press CTRL+C to stop the server")
         logger.info("=" * 60)
         
-        httpd.serve_forever()
+        http_server.serve_forever()
         
     except KeyboardInterrupt:
         logger.info("\n✅ Server stopped by user")
         sys.exit(0)
-    except Exception as e:
-        logger.error(f"Server error: {str(e)}", exc_info=True)
+    except Exception as server_error:
+        logger.error(f"Server error: {str(server_error)}", exc_info=True)
         sys.exit(1)
 
 

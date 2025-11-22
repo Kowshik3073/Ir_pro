@@ -1,16 +1,16 @@
 """
-Query Processor: Parses user queries and extracts structured constraints
+UserQueryParser: Transforms user input into structured search parameters
 
-Converts natural language user queries into structured search constraints
-that can be used by the ranking system to find relevant travel spots.
+This module handles the conversion of free-form text queries into
+organized search criteria for the travel destination retrieval system.
 
-Features:
-- Place name extraction
-- Budget amount parsing
-- Mood keyword detection
-- Duration extraction
-- Distance constraint parsing
-- Best months identification
+Core Capabilities:
+- Destination identification
+- Financial limit parsing
+- Vibe/atmosphere detection
+- Trip length extraction
+- Travel range parsing
+- Optimal timing identification
 """
 from typing import Dict, List
 import re
@@ -18,12 +18,12 @@ import re
 
 class QueryProcessor:
     """
-    Processes natural language queries from users.
-    Extracts budget, mood, duration, distance, and location constraints.
+    Interprets user search requests and builds structured filter criteria.
+    Parses financial limits, atmosphere preferences, trip length, travel range, and locations.
     """
     
-    # Mood keywords mapping - organized by category
-    MOOD_KEYWORDS = {
+    # Atmosphere/vibe keyword catalog - grouped by experience type
+    VIBE_LEXICON = {
         'adventure': ['adventure', 'trekking', 'hiking', 'extreme', 'thrill', 'trek', 'climb'],
         'nature': ['nature', 'wildlife', 'forest', 'scenic', 'landscape', 'hill', 'mountain', 'snow'],
         'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest'],
@@ -34,8 +34,8 @@ class QueryProcessor:
         'romantic': ['romantic', 'couple', 'honeymoon', 'love']
     }
     
-    # Place name mappings for common queries
-    PLACE_NAME_MAPPINGS = {
+    # Location aliases for popular destinations
+    DESTINATION_ALIASES = {
         'manali': 'Manali Hill Station',
         'goa': 'Goa Beach',
         'kerala': 'Kerala Backwaters',
@@ -53,51 +53,50 @@ class QueryProcessor:
     }
     
     def __init__(self):
-        """Initialize the query processor"""
-        self.query = ""
-        self.constraints = {}
-        self._tokenize_cache = {}  # Cache tokenized results
+        """Set up the parser with empty state"""
+        self.user_input = ""
+        self.parsed_filters = {}
+        self._term_cache = {}  # Performance optimization for tokenization
     
-    def _extract_query_terms(self) -> None:
+    def _isolate_search_tokens(self) -> None:
         """
-        Extract raw query terms for full-text searching across descriptions.
+        Pull out significant words from user input for content matching.
         
-        Removes common stop words and extracts meaningful terms from the query.
-        This allows searching destinations by their full descriptions, not just
-        specific categories.
+        Filters out filler words and keeps only substantive terms.
+        Enables matching against destination content, not just predefined categories.
         """
-        stop_words = {
+        filler_words = {
             'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
             'of', 'with', 'from', 'by', 'as', 'is', 'are', 'have', 'has', 'be',
             'can', 'i', 'you', 'we', 'they', 'what', 'where', 'when', 'why', 'how',
             'please', 'find', 'show', 'get', 'give', 'tell', 'me', 'my', 'want'
         }
         
-        # Split query into terms
-        terms = self.query.split()
+        # Break input into individual words
+        word_list = self.user_input.split()
         
-        # Filter stop words and extract meaningful terms
-        meaningful_terms = [
-            term.strip('.,!?;:') for term in terms 
-            if term.lower() not in stop_words and len(term) > 2
+        # Keep only meaningful words (not filler, length > 2)
+        significant_words = [
+            word.strip('.,!?;:') for word in word_list 
+            if word.lower() not in filler_words and len(word) > 2
         ]
         
-        self.constraints['query_terms'] = meaningful_terms
+        self.parsed_filters['query_terms'] = significant_words
     
-    def _extract_place_name(self) -> None:
+    def _identify_destination(self) -> None:
         """
-        Extract place name from query.
+        Detect specific location mentions in the user's request.
         
-        Checks for known place names in the query and extracts them.
+        Scans for recognized destination names and maps them to canonical forms.
         """
-        for key, place in self.PLACE_NAME_MAPPINGS.items():
-            if key in self.query.lower():
-                self.constraints['place_name'] = place
+        for alias, canonical_name in self.DESTINATION_ALIASES.items():
+            if alias in self.user_input.lower():
+                self.parsed_filters['place_name'] = canonical_name
                 return
     
-    def _extract_months(self) -> None:
-        """Extract best visit months/season from query"""
-        months = {
+    def _parse_timing_preferences(self) -> None:
+        """Identify preferred travel months or seasons from user input"""
+        timing_map = {
             'january': 'january',
             'february': 'february',
             'march': 'march',
@@ -114,52 +113,52 @@ class QueryProcessor:
             'summer': ['march', 'april', 'may', 'june'],
             'monsoon': ['june', 'july', 'august', 'september'],
             'autumn': ['september', 'october', 'november'],
-            'season': None  # Trigger any season match
+            'season': None  # Generic season indicator
         }
         
-        months_found = []
-        for key, value in months.items():
-            if key in self.query:
-                if isinstance(value, list):
-                    months_found.extend(value)
-                elif value is not None:
-                    months_found.append(value)
-                # 'season' keyword alone doesn't add specific months
+        detected_months = []
+        for timing_key, timing_value in timing_map.items():
+            if timing_key in self.user_input:
+                if isinstance(timing_value, list):
+                    detected_months.extend(timing_value)
+                elif timing_value is not None:
+                    detected_months.append(timing_value)
+                # Generic 'season' doesn't add specific months
         
-        if months_found:
-            self.constraints['best_months'] = list(set(months_found))  # Remove duplicates
+        if detected_months:
+            self.parsed_filters['best_months'] = list(set(detected_months))  # Deduplicate
 
     
     def process_query(self, query: str) -> Dict:
         """
-        Parse query string and extract all constraints.
+        Transform raw text query into organized search parameters.
         
-        Processes a natural language query and extracts structured constraints
-        for place name, budget, mood, duration, distance, and best months.
+        Analyzes natural language input and builds structured filter dictionary
+        covering destination, finances, vibes, trip duration, distance, and timing.
         
         Args:
-            query: Natural language query string
+            query: User's search text
             
         Returns:
-            Dictionary of extracted constraints with keys:
-            - budget_max: Maximum budget in rupees (int or None)
-            - mood: List of mood preferences
-            - duration_days: Trip duration in days (int or None)
-            - distance_km: Maximum distance in km (int or None)
-            - place_name: Specific place if mentioned (str or None)
-            - best_months: List of preferred months
+            Dictionary with parsed parameters:
+            - budget_max: Upper financial limit (int or None)
+            - mood: Atmosphere/vibe preferences (list)
+            - duration_days: Length of trip (int or None)
+            - distance_km: Maximum travel distance (int or None)
+            - place_name: Specific destination if mentioned (str or None)
+            - best_months: Preferred travel months (list)
             
         Raises:
-            TypeError: If query is not a string
+            TypeError: If input is not text
         """
         if not isinstance(query, str):
-            raise TypeError(f"Query must be a string, got {type(query).__name__}")
+            raise TypeError(f"Input must be text, received {type(query).__name__}")
             
-        self.query = query.lower().strip()
+        self.user_input = query.lower().strip()
         
-        # Initialize constraints with proper types
-        self.constraints = {
-            'budget_min': None,  # NEW: Minimum budget
+        # Set up empty filter structure with correct data types
+        self.parsed_filters = {
+            'budget_min': None,  # Lower financial bound
             'budget_max': None,
             'mood': [],
             'duration_days': None,
@@ -169,120 +168,120 @@ class QueryProcessor:
             'query_terms': []
         }
         
-        # Extract all constraints from query
-        self._extract_query_terms()
-        self._extract_place_name()
-        self._extract_budget()
-        self._extract_mood()
-        self._extract_months()
-        self._extract_duration()
-        self._extract_distance()
+        # Run all extraction methods
+        self._isolate_search_tokens()
+        self._identify_destination()
+        self._parse_financial_limits()
+        self._detect_atmosphere()
+        self._parse_timing_preferences()
+        self._parse_trip_length()
+        self._parse_travel_range()
         
-        return self.constraints
+        return self.parsed_filters
     
-    def _extract_budget(self) -> None:
+    def _parse_financial_limits(self) -> None:
         """
-        Extract budget constraint from query.
+        Extract budget information from user query.
         
-        Supports:
+        Handles:
         - Ranges: "1000-2000", "budget is 1000-2000", "1000 to 2000"
-        - Max limits: "budget 1500", "under 2000"
-        - Defaults: "cheap" -> 3500
+        - Upper limits: "budget 1500", "under 2000"
+        - Keywords: "cheap" -> 3500
         """
-        if not self.query:
+        if not self.user_input:
             return
             
-        # 1. Check for RANGES first (HIGHEST PRIORITY)
-        # This must come before single number extraction
-        range_patterns = [
-            r'(\d+)\s*-\s*(\d+)',                          # 1000-2000, budget is 1000-2000
+        # Priority 1: Look for budget RANGES first
+        # Must check ranges before single values
+        range_regex_list = [
+            r'(\d+)\s*-\s*(\d+)',                          # 1000-2000
             r'(\d+)\s+to\s+(\d+)',                         # 1000 to 2000
             r'between\s+(\d+)\s+and\s+(\d+)',              # between 1000 and 2000
             r'from\s+(\d+)\s+to\s+(\d+)'                   # from 1000 to 2000
         ]
         
-        for pattern in range_patterns:
-            match = re.search(pattern, self.query)
-            if match:
+        for regex_pattern in range_regex_list:
+            range_match = re.search(regex_pattern, self.user_input)
+            if range_match:
                 try:
-                    min_val = int(match.group(1))
-                    max_val = int(match.group(2))
-                    # Ensure min < max
-                    if min_val > max_val:
-                        min_val, max_val = max_val, min_val
+                    lower_bound = int(range_match.group(1))
+                    upper_bound = int(range_match.group(2))
+                    # Swap if reversed
+                    if lower_bound > upper_bound:
+                        lower_bound, upper_bound = upper_bound, lower_bound
                         
-                    self.constraints['budget_min'] = min_val
-                    self.constraints['budget_max'] = max_val
-                    return # Found range, stop looking
+                    self.parsed_filters['budget_min'] = lower_bound
+                    self.parsed_filters['budget_max'] = upper_bound
+                    return # Range found, exit
                 except ValueError:
                     continue
 
-        # 2. Check for SINGLE numbers (Max limit)
-        # Only if no range was found
-        patterns = [
-            r'(?:budget|rupees|rs|inr)\s*(?:is|of|max|maximum|limit|under|below)?\s*[:\s]*(\d+)',  # budget is 5000
-            r'(\d+)\s*(?:rupees|rs|inr)',                # 5000 rupees
-            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?\s*[:\s]*(\d+)',  # upto 5000
-            r'^(\d+)$',                                   # just "5000"
+        # Priority 2: Look for SINGLE values (upper limit)
+        # Only if no range detected
+        single_value_patterns = [
+            r'(?:budget|rupees|rs|inr)\s*(?:is|of|max|maximum|limit|under|below)?\s*[:\s]*(\d+)',
+            r'(\d+)\s*(?:rupees|rs|inr)',
+            r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?\s*[:\s]*(\d+)',
+            r'^(\d+)$',
         ]
         
-        for pattern in patterns:
-            match = re.search(pattern, self.query)
-            if match:
+        for single_pattern in single_value_patterns:
+            single_match = re.search(single_pattern, self.user_input)
+            if single_match:
                 try:
-                    budget_str = match.group(1)
-                    self.constraints['budget_max'] = int(budget_str)
-                    return  # Found actual number, don't apply defaults
+                    amount_str = single_match.group(1)
+                    self.parsed_filters['budget_max'] = int(amount_str)
+                    return  # Value found, exit
                 except ValueError:
                     continue
         
-        # 3. If no number found, check for budget-related keywords with defaults
-        if 'cheap' in self.query or 'affordable' in self.query or 'budget' in self.query or 'friendly' in self.query:
-            self.constraints['budget_max'] = 3500  # Default affordable budget
+        # Priority 3: Check for budget keywords with default values
+        if 'cheap' in self.user_input or 'affordable' in self.user_input or 'budget' in self.user_input or 'friendly' in self.user_input:
+            self.parsed_filters['budget_max'] = 3500  # Default economical limit
     
-    def _extract_mood(self) -> None:
+    def _detect_atmosphere(self) -> None:
         """
-        Extract mood constraints from query.
+        Identify vibe/atmosphere preferences from user text.
         
-        Searches for mood keywords and adds matching moods to constraints.
-        Uses an enhanced keyword list for better destination matching.
+        Scans for atmosphere keywords and builds list of matching vibes.
+        Leverages expanded keyword catalog for improved matching.
         """
-        moods_found = set()
+        detected_vibes = set()
         
-        for mood, keywords in self.MOOD_KEYWORDS.items():
-            for keyword in keywords:
-                if keyword in self.query.lower():
-                    moods_found.add(mood)
-                    break  # Found this mood, move to next
+        for vibe_category, keyword_list in self.VIBE_LEXICON.items():
+            for keyword in keyword_list:
+                if keyword in self.user_input.lower():
+                    detected_vibes.add(vibe_category)
+                    break  # Move to next vibe category
         
-        self.constraints['mood'] = list(moods_found) if moods_found else []
+        self.parsed_filters['mood'] = list(detected_vibes) if detected_vibes else []
     
-    def _extract_duration(self) -> None:
-        """Extract duration constraint from query"""
-        patterns = [
+    def _parse_trip_length(self) -> None:
+        """Extract trip duration from user input"""
+        duration_patterns = [
             r'(\d+)\s*(?:days?|d)',
             r'(?:for|duration)[\s:]*(\d+)\s*days?'
         ]
         
-        for pattern in patterns:
-            match = re.search(pattern, self.query)
-            if match:
-                self.constraints['duration_days'] = int(match.group(1))
+        for duration_regex in duration_patterns:
+            duration_match = re.search(duration_regex, self.user_input)
+            if duration_match:
+                self.parsed_filters['duration_days'] = int(duration_match.group(1))
                 break
     
-    def _extract_distance(self) -> None:
-        """Extract distance constraint from query"""
-        patterns = [
+    def _parse_travel_range(self) -> None:
+        """Extract maximum travel distance from user input"""
+        distance_patterns = [
             r'(?:within|upto|up to|max|maximum|km)[\s:]*(\d+)\s*km',
             r'(\d+)\s*km',
         ]
         
-        for pattern in patterns:
-            match = re.search(pattern, self.query)
-            if match:
-                self.constraints['distance_km'] = int(match.group(1))
+        for distance_regex in distance_patterns:
+            distance_match = re.search(distance_regex, self.user_input)
+            if distance_match:
+                self.parsed_filters['distance_km'] = int(distance_match.group(1))
                 break
     
     def get_constraints(self) -> Dict:
-        """Return parsed constraints"""
-        return self.constraints
+        """Retrieve the parsed filter dictionary"""
+        return self.parsed_filters

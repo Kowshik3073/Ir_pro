@@ -1,14 +1,14 @@
 """
-Indexer Module: Creates and manages the inverted index for travel spots
+DataIndexBuilder: Constructs and maintains reverse lookup structures for destinations
 
-Provides fast lookups and text-based similarity search using:
-- Inverted index for keyword search
-- Mood-based indexing for mood queries  
-- TF-IDF for relevance ranking
-- Metadata caching for quick access
+Delivers rapid retrieval and text similarity analysis through:
+- Reverse keyword mapping for term-based search
+- Atmosphere-based categorization for vibe filtering  
+- TF-IDF weighting for relevance computation
+- Quick-access metadata storage
 
-Author: Travel Recommendation Team
-Version: 2.0
+Development Team: Destination Discovery Platform
+Release: 2.0
 """
 import json
 import logging
@@ -22,200 +22,200 @@ logger = logging.getLogger(__name__)
 
 class TravelSpotIndexer:
     """
-    Builds and maintains an inverted index for travel spots.
+    Constructs and manages reverse lookup structures for destination data.
     
-    Supports:
-    - Keyword search via inverted index
-    - Mood-based filtering
-    - TF-IDF scoring
-    - Metadata caching
+    Features:
+    - Term-based retrieval via reverse index
+    - Atmosphere-based categorization
+    - TF-IDF relevance weighting
+    - Fast metadata access
     """
     
-    # Minimum token length to index
-    MIN_TOKEN_LENGTH = 2
+    # Shortest acceptable word length for indexing
+    SHORTEST_WORD_LEN = 2
     
     def __init__(self):
-        """Initialize empty indexes"""
-        self.inverted_index = defaultdict(set)  # term -> set of spot ids
-        self.spot_metadata = {}  # spot id -> metadata dict
-        self.mood_index = defaultdict(set)  # mood -> set of spot ids
-        self.spots_data = []  # raw spot data
-        self.doc_frequencies = defaultdict(int)  # term -> document frequency
-        self.total_docs = 0
-        self.dataset_path = None
-        self._idf_cache = {}  # Cache IDF calculations
+        """Set up empty data structures"""
+        self.reverse_term_map = defaultdict(set)  # word -> destination ID collection
+        self.destination_info = {}  # destination ID -> info dictionary
+        self.vibe_catalog = defaultdict(set)  # atmosphere -> destination ID collection
+        self.raw_destination_list = []  # unprocessed destination records
+        self.term_occurrence_counts = defaultdict(int)  # word -> occurrence count
+        self.total_destination_count = 0
+        self.source_file_path = None
+        self._idf_lookup_cache = {}  # Cached IDF computations
     
     def load_dataset(self, filepath: str) -> None:
         """
-        Load travel spots dataset from JSON file.
+        Import destination records from JSON data file.
         
         Args:
-            filepath: Path to JSON file containing travel spots
+            filepath: Location of JSON file with destination data
             
         Raises:
-            FileNotFoundError: If file doesn't exist
-            json.JSONDecodeError: If file is not valid JSON
-            ValueError: If dataset structure is invalid
+            FileNotFoundError: If specified file is missing
+            json.JSONDecodeError: If file contains malformed JSON
+            ValueError: If data structure doesn't match expected format
         """
-        self.dataset_path = filepath
+        self.source_file_path = filepath
         
         try:
             if not filepath or not filepath.strip():
-                raise ValueError("Filepath cannot be empty")
+                raise ValueError("File path must not be blank")
                 
-            with open(filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            with open(filepath, 'r', encoding='utf-8') as file_handle:
+                json_content = json.load(file_handle)
                 
-            if not isinstance(data, dict) or 'travel_spots' not in data:
-                raise ValueError("Dataset must be a dict with 'travel_spots' key")
+            if not isinstance(json_content, dict) or 'travel_spots' not in json_content:
+                raise ValueError("Data must be dictionary containing 'travel_spots' field")
                 
-            if not isinstance(data['travel_spots'], list):
-                raise ValueError("'travel_spots' must be a list")
+            if not isinstance(json_content['travel_spots'], list):
+                raise ValueError("'travel_spots' field must contain a list")
                 
-            self.spots_data = data['travel_spots']
-            self.total_docs = len(self.spots_data)
-            logger.debug(f"Loaded {self.total_docs} travel spots from {filepath}")
+            self.raw_destination_list = json_content['travel_spots']
+            self.total_destination_count = len(self.raw_destination_list)
+            logger.debug(f"Imported {self.total_destination_count} destinations from {filepath}")
             
         except FileNotFoundError:
-            logger.error(f"Dataset file not found: {filepath}")
-            raise FileNotFoundError(f"Dataset file not found: {filepath}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in dataset: {str(e)}")
-            raise json.JSONDecodeError(f"Invalid JSON in dataset: {str(e)}", e.doc, e.pos)
-        except ValueError as e:
-            logger.error(f"Invalid dataset structure: {str(e)}")
+            logger.error(f"Cannot locate data file: {filepath}")
+            raise FileNotFoundError(f"Cannot locate data file: {filepath}")
+        except json.JSONDecodeError as parse_error:
+            logger.error(f"Malformed JSON detected: {str(parse_error)}")
+            raise json.JSONDecodeError(f"Malformed JSON detected: {str(parse_error)}", parse_error.doc, parse_error.pos)
+        except ValueError as validation_error:
+            logger.error(f"Data structure validation failed: {str(validation_error)}")
             raise
     
     def build_index(self) -> None:
         """
-        Build inverted index for all travel spots.
+        Construct reverse lookup structures for all destinations.
         
-        Indexes:
-        - Spot names (keywords)
-        - Spot descriptions (tokenized)
-        - Moods (for mood-based filtering)
+        Processes:
+        - Destination titles (keyword extraction)
+        - Destination details (word tokenization)
+        - Atmosphere tags (for vibe-based filtering)
         
         Raises:
-            ValueError: If dataset has not been loaded
+            ValueError: If data hasn't been imported yet
             
-        Must call load_dataset() before this method.
+        Must invoke load_dataset() prior to calling this.
         """
-        if not self.spots_data:
-            raise ValueError("Dataset must be loaded before building index. Call load_dataset() first.")
+        if not self.raw_destination_list:
+            raise ValueError("Data must be imported first. Invoke load_dataset() before indexing.")
             
-        # Clear existing indexes
-        self.inverted_index.clear()
-        self.spot_metadata.clear()
-        self.mood_index.clear()
-        self.doc_frequencies.clear()
-        self._idf_cache.clear()  # Clear cache when rebuilding
-        logger.debug("Building inverted index for all spots")
+        # Reset all lookup structures
+        self.reverse_term_map.clear()
+        self.destination_info.clear()
+        self.vibe_catalog.clear()
+        self.term_occurrence_counts.clear()
+        self._idf_lookup_cache.clear()  # Flush cache on rebuild
+        logger.debug("Constructing reverse index for all destinations")
         
-        for spot in self.spots_data:
-            spot_id = spot['id']
+        for destination_record in self.raw_destination_list:
+            destination_identifier = destination_record['id']
             
-            # Store metadata for quick retrieval
-            self.spot_metadata[spot_id] = {
-                'name': spot['name'],
-                'mood': spot['mood'],
-                'budget_min': spot['budget_min'],
-                'budget_max': spot['budget_max'],
-                'duration_days': spot['duration_days'],
-                'distance_km': spot['distance_km'],
-                'rating': spot['rating'],
-                'description': spot['description'],
-                'best_months': spot.get('best_months', [])
+            # Cache metadata for rapid access
+            self.destination_info[destination_identifier] = {
+                'name': destination_record['name'],
+                'mood': destination_record['mood'],
+                'budget_min': destination_record['budget_min'],
+                'budget_max': destination_record['budget_max'],
+                'duration_days': destination_record['duration_days'],
+                'distance_km': destination_record['distance_km'],
+                'rating': destination_record['rating'],
+                'description': destination_record['description'],
+                'best_months': destination_record.get('best_months', [])
             }
             
-            # Index moods for mood-based queries
-            for mood in spot['mood']:
-                self.mood_index[mood.lower()].add(spot_id)
+            # Build atmosphere-based lookup
+            for atmosphere_tag in destination_record['mood']:
+                self.vibe_catalog[atmosphere_tag.lower()].add(destination_identifier)
             
-            # Index text fields (name, description)
-            text_to_index = (spot['name'] + ' ' + spot['description']).lower()
-            terms = self._tokenize(text_to_index)
+            # Process text content (title + details)
+            combined_text = (destination_record['name'] + ' ' + destination_record['description']).lower()
+            word_tokens = self._break_into_words(combined_text)
             
-            # Add to inverted index (use set to avoid duplicate counting)
-            for term in set(terms):
-                self.inverted_index[term].add(spot_id)
-                self.doc_frequencies[term] += 1
+            # Populate reverse index (deduplicate with set)
+            for unique_word in set(word_tokens):
+                self.reverse_term_map[unique_word].add(destination_identifier)
+                self.term_occurrence_counts[unique_word] += 1
     
-    def _tokenize(self, text: str) -> List[str]:
+    def _break_into_words(self, text_input: str) -> List[str]:
         """
-        Tokenize text into searchable terms.
+        Convert text into individual searchable words.
         
-        - Removes special characters
-        - Converts to lowercase
-        - Filters out short tokens
+        - Strips punctuation and special symbols
+        - Normalizes to lowercase
+        - Removes very short words
         
         Args:
-            text: Text to tokenize
+            text_input: Text to process
             
         Returns:
-            List of tokens (words)
+            List of word tokens
         """
-        # Remove special characters and split by whitespace
-        tokens = re.sub(r'[^a-zA-Z0-9\s]', '', text).split()
-        # Filter short tokens for better search quality
-        return [t for t in tokens if len(t) > self.MIN_TOKEN_LENGTH]
+        # Strip non-alphanumeric characters and split on whitespace
+        word_tokens = re.sub(r'[^a-zA-Z0-9\s]', '', text_input).split()
+        # Keep only words meeting minimum length
+        return [word for word in word_tokens if len(word) > self.SHORTEST_WORD_LEN]
     
     def get_spot_by_id(self, spot_id: int) -> Optional[Dict]:
         """
-        Retrieve spot metadata by ID.
+        Fetch destination information using its identifier.
         
         Args:
-            spot_id: Numeric ID of the spot
+            spot_id: Unique destination identifier
             
         Returns:
-            Metadata dictionary or None if not found
+            Information dictionary or None if not indexed
         """
-        return self.spot_metadata.get(spot_id)
+        return self.destination_info.get(spot_id)
     
     def get_spots_by_mood(self, mood: str) -> Set[int]:
         """
-        Get all spot IDs matching a mood.
+        Retrieve all destination IDs with a specific atmosphere.
         
         Args:
-            mood: Mood string (e.g., 'relaxing', 'adventure')
+            mood: Atmosphere descriptor (e.g., 'relaxing', 'adventure')
             
         Returns:
-            Set of matching spot IDs
+            Collection of matching destination IDs
         """
-        return self.mood_index.get(mood.lower(), set())
+        return self.vibe_catalog.get(mood.lower(), set())
     
     def calculate_idf(self, term: str) -> float:
         """
-        Calculate Inverse Document Frequency (IDF) for a term.
+        Compute Inverse Document Frequency (IDF) for a search term.
         
-        IDF = log(total_docs / docs_with_term)
+        Formula: IDF = log(total_destinations / destinations_containing_term)
         
-        Higher IDF means the term is more unique/discriminative.
-        Results are cached for performance optimization.
+        Higher values indicate more distinctive/rare terms.
+        Computations are cached to improve performance.
         
         Args:
-            term: Search term
+            term: Word to analyze
             
         Returns:
-            IDF score (0.0 if term not found)
+            IDF weight (0.0 if term not indexed)
         """
-        # Return cached result if available
-        if term in self._idf_cache:
-            return self._idf_cache[term]
+        # Use cached value if available
+        if term in self._idf_lookup_cache:
+            return self._idf_lookup_cache[term]
             
-        if term not in self.doc_frequencies or self.total_docs == 0:
-            result = 0.0
+        if term not in self.term_occurrence_counts or self.total_destination_count == 0:
+            computed_value = 0.0
         else:
-            result = math.log(self.total_docs / self.doc_frequencies[term])
+            computed_value = math.log(self.total_destination_count / self.term_occurrence_counts[term])
         
-        # Cache the result
-        self._idf_cache[term] = result
-        return result
+        # Store for future lookups
+        self._idf_lookup_cache[term] = computed_value
+        return computed_value
     
     def get_indexed_spots(self) -> Dict:
         """
-        Return all indexed spots for debugging/inspection.
+        Export all indexed destination data for inspection.
         
         Returns:
-            Dictionary of all spot metadata indexed
+            Copy of complete destination metadata dictionary
         """
-        return self.spot_metadata.copy()
+        return self.destination_info.copy()
