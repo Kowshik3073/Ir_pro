@@ -40,32 +40,43 @@ The system follows a sophisticated pipeline to deliver recommendations:
 ## 🧠 Information Retrieval (IR) Concepts Used
 This project implements core concepts from Information Retrieval and Search Engine design:
 
-### 1. Vector Space Model & Cosine Similarity
-*   **TF-IDF (Term Frequency-Inverse Document Frequency)** is used to analyze the textual descriptions of travel spots.
-*   We calculate the **Cosine Similarity** between your search query and the destination descriptions. This measures how close your request is to the available spots in a multi-dimensional vector space, ensuring highly relevant text matches.
+### 1. Inverted Index
+*   **Fast Keyword Lookup**: We build an inverted index mapping terms to destination IDs for efficient retrieval.
+*   **Document Frequency Tracking**: Track how many destinations contain each term for relevance calculations.
+*   **Tokenization**: Text is processed into searchable terms with stop word removal and length filtering.
 
 ### 2. Weighted Scoring System
-Instead of a simple "yes/no" match, we use a sophisticated scoring algorithm to rank results. The final score is a weighted sum of several factors:
-*   **Budget Match (25%)**: Heavily weighted to ensure affordability.
-*   **Mood/Category Match (20%)**: Ensures the "vibe" is right.
-*   **Duration Match (20%)**: Prioritized if you specify a trip length.
-*   **Content Relevance (15%)**: How well the description matches your keywords.
-*   **Name Match (12%)**: Direct matches (e.g., searching "Goa") get a boost.
-*   **Best Time to Visit (5%)**: Slight boost if it's the right season.
+Instead of a simple "yes/no" match, we use a sophisticated multi-factor scoring algorithm to rank results. The final relevance score is a weighted sum of several factors:
+*   **Budget Match (25%)**: Heavily weighted to ensure affordability and budget overlap detection.
+*   **Mood/Category Match (20%)**: Ensures the "vibe" matches user preferences.
+*   **Duration Match (20%)**: Prioritized when trip length is explicitly specified.
+*   **Content Relevance (15%)**: Keyword matching in destination names and descriptions.
+*   **Destination Type (12%)**: Boosts for matching destination categories (beach, mountain, etc.).
+*   **Best Time to Visit (5%)**: Seasonal matching for optimal travel timing.
+*   **Distance (3%)**: Proximity to user's location.
 
 ### 3. Boolean Retrieval & Filtering
-*   We use **Strict Filtering** logic for critical constraints. If you set a maximum budget, places significantly more expensive are strictly excluded (Boolean NOT).
-*   If you search for a specific type (e.g., "Beach"), the system enforces a filter to exclude non-matching categories.
+*   **Strict Budget Filtering**: Places outside budget range are excluded using Boolean logic.
+*   **Category Filtering**: Enforces type matching (e.g., "beach" queries exclude non-beach destinations).
+*   **Overlap Detection**: Smart budget range matching allows partial overlaps.
 
-### 4. Natural Language Processing (NLP)
-*   **Entity Recognition**: Extracting money amounts (`MONEY` entities) and dates (`DATE` entities) from text.
-*   **Noun Chunking**: Understanding phrases like "relaxing trip" to identify user intent.
+### 4. Natural Language Query Processing
+*   **Budget Extraction**: Parses budget ranges ("1000-2000") and single values ("under 5000").
+*   **Mood Detection**: Maps keywords to mood categories (adventure, relaxing, cultural, etc.).
+*   **Duration Parsing**: Extracts trip length from queries ("3 days", "for 5 days").
+*   **Location Recognition**: Identifies destination names and aliases.
+*   **Stop Word Removal**: Filters common words to extract meaningful search terms.
+
+### 5. Relevance Ranking
+*   **Adaptive Weighting**: Scoring weights adjust based on explicit user constraints.
+*   **Threshold-Based Filtering**: Only results above 40% relevance are shown.
+*   **Multi-Criteria Scoring**: Combines multiple signals for comprehensive relevance assessment.
 
 ## 💻 Tech Stack
-*   **Backend**: Python, Flask
-*   **Frontend**: HTML5, CSS3 (Modern Dark Theme), JavaScript (Vanilla)
-*   **IR/NLP Libraries**: `scikit-learn` (TF-IDF), `spaCy` (NLP)
-*   **Data**: JSON-based document store
+*   **Backend**: Python 3.x with HTTP Server
+*   **Frontend**: HTML5, CSS3 (Modern Dark Theme), Vanilla JavaScript
+*   **Data Storage**: JSON-based document store
+*   **Algorithms**: Custom weighted scoring, inverted indexing, constraint satisfaction
 
 ---
 *Built with ❤️ for the Information Retrieval Project*
