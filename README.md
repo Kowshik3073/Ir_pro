@@ -1,7 +1,7 @@
-# 🌍 Travel Finder - AI-Powered Travel Recommendation System
+# 🌍 Travel Finder - Smart Travel Recommendation System
 
 ## 📖 What is this?
-**Travel Finder** is an intelligent, AI-driven web application designed to help users discover their perfect travel destinations in India. Unlike traditional travel sites that rely on rigid filters, Travel Finder understands **natural language queries**.
+**Travel Finder** is an intelligent web application designed to help users discover their perfect travel destinations in India. Unlike traditional travel sites that rely on rigid filters, Travel Finder understands **natural language queries**.
 
 You can ask it things like:
 *   *"I want a beach vacation under 5000 rupees"*
