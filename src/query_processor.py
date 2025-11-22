@@ -69,16 +69,24 @@ class QueryProcessor:
             'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
             'of', 'with', 'from', 'by', 'as', 'is', 'are', 'have', 'has', 'be',
             'can', 'i', 'you', 'we', 'they', 'what', 'where', 'when', 'why', 'how',
-            'please', 'find', 'show', 'get', 'give', 'tell', 'me', 'my', 'want'
+            'please', 'find', 'show', 'get', 'give', 'tell', 'me', 'my', 'want',
+            # Budget-related words that shouldn't be search terms
+            'budget', 'rupees', 'rs', 'inr', 'price', 'cost', 'under', 'upto', 'between',
+            # Duration-related words
+            'days', 'day', 'week', 'weeks', 'month', 'months',
+            # Distance-related words  
+            'km', 'kilometers', 'distance', 'away', 'far', 'near', 'within'
         }
         
         # Break input into individual words
         word_list = self.user_input.split()
         
-        # Keep only meaningful words (not filler, length > 2)
+        # Keep only meaningful words (not filler, length > 2, not numbers)
         significant_words = [
             word.strip('.,!?;:') for word in word_list 
-            if word.lower() not in filler_words and len(word) > 2
+            if (word.lower() not in filler_words and 
+                len(word) > 2 and 
+                not word.isdigit())  # Exclude pure numbers like "3000"
         ]
         
         self.parsed_filters['query_terms'] = significant_words

@@ -88,27 +88,30 @@ class TravelSpotRanker:
         # Detect if trip length was explicitly mentioned (high priority signal)
         trip_length_explicit = constraints.get('duration_days') is not None
         
-        # Component 0: CONTENT/DESCRIPTION MATCHING (15% weight) - Reduced when trip length explicit
-        # Search for user terms in destination details and title
+        # Component 0: CONTENT/DESCRIPTION MATCHING (15% weight)
         if constraints.get('query_terms'):
             content_relevance = self._evaluate_content_match(metadata, constraints['query_terms'])
             
-            # STRICT FILTERING: If search terms provided but weak match found
-            # content_relevance < 0.5 means no title match (only description/atmosphere match)
-            if content_relevance < 0.5:
-                # Check for other explicit criteria
-                has_additional_filters = (
-                    constraints.get('budget_max') is not None or
-                    constraints.get('mood') or
-                    constraints.get('duration_days') is not None or
-                    constraints.get('distance_km') is not None or
-                    constraints.get('best_months')
-                )
-                
-                # Without other criteria, destination is irrelevant
-                # User searching by name/keyword only, require title match
-                if not has_additional_filters:
-                    return 0.0
+            # SMART FILTERING: Detect if query contains location/type keywords
+            # These MUST match the destination, unlike mood keywords
+            location_type_keywords = {
+                'mountain', 'mountains', 'hill', 'hills', 'beach', 'beaches', 
+                'desert', 'island', 'islands', 'valley', 'lake', 'backwater', 
+                'backwaters', 'forest', 'jungle', 'snow', 'temple', 'palace',
+                'fort', 'city', 'village', 'waterfall', 'river', 'sea', 'ocean'
+            }
+            
+            # Check if any query term is a location/type keyword
+            has_location_keyword = any(
+                term.lower() in location_type_keywords 
+                for term in constraints['query_terms']
+            )
+            
+            # If location keyword present but no strong match, filter out
+            # This ensures "mountain budget 5000" only shows mountains
+            # But "adventure budget 5000" can match via mood
+            if has_location_keyword and content_relevance < 0.5:
+                return 0.0  # Location keyword doesn't match - filter out
             
             total_score += content_relevance * 0.15
         else:
@@ -223,11 +226,13 @@ class TravelSpotRanker:
             # Perfect match if all terms in title
             return min(title_hits / total_terms, 1.0)
         
-        # No title match but atmosphere/details match, give low score
-        # Prevents "beach" from matching "hill station with beach views"
+        # Mood/atmosphere match is STRONG (not weak) - these are primary categorizations
+        # Example: "spiritual" matching mood=['spiritual'] should score high
         if atmosphere_hits > 0:
-            return 0.3 * (atmosphere_hits / total_terms)
+            return 0.8 * (atmosphere_hits / total_terms)  # Changed from 0.3 to 0.8
         
+        # Description match is weaker - prevents false positives
+        # Example: "beach" in "hill station with beach views" description
         if details_hits > 0:
             return 0.2 * (details_hits / total_terms)
         
