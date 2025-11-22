@@ -40,9 +40,9 @@ The system follows a sophisticated pipeline to deliver recommendations:
 ## 🧠 Information Retrieval (IR) Concepts Used
 This project implements core concepts from Information Retrieval and Search Engine design:
 
-### 1. Vector Space Model & TF-IDF
+### 1. Vector Space Model & Cosine Similarity
 *   **TF-IDF (Term Frequency-Inverse Document Frequency)** is used to analyze the textual descriptions of travel spots.
-*   It helps the system understand which words are important for each destination, allowing it to match your query keywords against the rich descriptions of places.
+*   We calculate the **Cosine Similarity** between your search query and the destination descriptions. This measures how close your request is to the available spots in a multi-dimensional vector space, ensuring highly relevant text matches.
 
 ### 2. Weighted Scoring System
 Instead of a simple "yes/no" match, we use a sophisticated scoring algorithm to rank results. The final score is a weighted sum of several factors:
