@@ -56,28 +56,19 @@ class TravelSpotRecommendationSystem:
             logger.error(f"Failed to initialize recommendation system: {str(e)}")
             raise
     
-    def recommend(self, user_query: str, top_k: int = 5) -> List[Dict]:
+    def recommend_with_explanation(self, user_query: str, top_k: int = 5) -> Dict:
         """
-        Get travel spot recommendations for a user query.
+        Get travel spot recommendations with full details and explanation.
         
         Args:
             user_query: Natural language query from user
             top_k: Number of recommendations to return (default: 5)
         
         Returns:
-            List of recommended spots with scores and metadata
-            
-        Example:
-            >>> system.recommend("budget 5000, adventure", top_k=3)
-            [
-                {
-                    'rank': 1,
-                    'name': 'Manali Hill Station',
-                    'relevance_score': 0.8234,
-                    'moods': ['adventure', 'nature'],
-                    ...
-                }
-            ]
+            Dictionary containing:
+            - recommendations: List of recommended spots
+            - total_results: Total number of matching results
+            - parsed_constraints: The constraints extracted from query
         """
         try:
             # Step 1: Process query to extract constraints
@@ -102,79 +93,30 @@ class TravelSpotRecommendationSystem:
                     'duration_days': metadata['duration_days'],
                     'distance_km': metadata['distance_km'],
                     'rating': metadata['rating'],
+                    'best_months': metadata.get('best_months', []),
                     'description': metadata['description']
                 }
                 recommendations.append(rec)
             
             logger.info(f"Generated {len(recommendations)} recommendations for query: '{user_query}'")
-            return recommendations
+            
+            return {
+                'recommendations': recommendations,
+                'total_results': len(recommendations),
+                'parsed_constraints': constraints
+            }
             
         except Exception as e:
             logger.error(f"Error generating recommendations: {str(e)}")
             raise
-    
-    def recommend_with_explanation(self, user_query: str, top_k: int = 5) -> Dict:
+
+    def recommend(self, user_query: str, top_k: int = 5) -> List[Dict]:
         """
-        Get recommendations with detailed explanations of ranking.
-        
-        Provides a complete breakdown of:
-        - How the query was interpreted
-        - Why each spot was ranked (score breakdown)
-        - All metadata for informed decision-making
-        
-        Args:
-            user_query: Natural language query from user
-            top_k: Number of recommendations to return (default: 5)
-        
-        Returns:
-            Dictionary with:
-            - user_query: Original query
-            - parsed_constraints: Extracted structured constraints
-            - recommendations: List of spots with score breakdown
-            - total_results: Number of results returned
+        Wrapper for backward compatibility.
+        Returns just the list of recommendations.
         """
-        try:
-            # Process query
-            constraints = self.query_processor.process_query(user_query)
-            logger.debug(f"Query explained: {constraints}")
-            
-            # Rank spots
-            ranked_results = self.ranker.rank_spots(constraints, top_k=top_k)
-            
-            # Build response with explanations
-            recommendations = []
-            for rank, (spot_id, score, metadata) in enumerate(ranked_results, 1):
-                explanation = self.ranker.explain_score(spot_id, metadata, constraints)
-                
-                rec = {
-                    'rank': rank,
-                    'spot_id': spot_id,
-                    'name': metadata['name'],
-                    'relevance_score': round(score, 4),
-                    'moods': metadata['mood'],
-                    'budget_range': f"₹{metadata['budget_min']}-{metadata['budget_max']}",
-                    'budget_min': metadata['budget_min'],
-                    'budget_max': metadata['budget_max'],
-                    'duration_days': metadata['duration_days'],
-                    'distance_km': metadata['distance_km'],
-                    'rating': metadata['rating'],
-                    'best_months': metadata.get('best_months', []),
-                    'description': metadata['description'],
-                    'score_breakdown': explanation['components']
-                }
-                recommendations.append(rec)
-            
-            logger.info(f"Generated {len(recommendations)} explained recommendations")
-            return {
-                'user_query': user_query,
-                'parsed_constraints': constraints,
-                'recommendations': recommendations,
-                'total_results': len(recommendations)
-            }
-            
-        except Exception as e:
-            logger.error(f"Error generating explained recommendations: {str(e)}")
-            raise
+        result = self.recommend_with_explanation(user_query, top_k)
+        return result['recommendations']
     
     def get_all_spots(self) -> List[Dict]:
         """

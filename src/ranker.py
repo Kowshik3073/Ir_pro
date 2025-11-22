@@ -23,9 +23,12 @@ class TravelSpotRanker:
         """
         Rank all travel spots based on constraints.
         
+        Returns all relevant results (score > threshold) regardless of top_k.
+        Filters out irrelevant results even if fewer than top_k.
+        
         Args:
             constraints: Dictionary of parsed user constraints
-            top_k: Number of top results to return (default: 5)
+            top_k: Suggested number of results (used as hint, not hard limit)
             
         Returns:
             List of (spot_id, score, metadata) tuples sorted by score descending
@@ -36,24 +39,32 @@ class TravelSpotRanker:
         if top_k < 1:
             raise ValueError("top_k must be at least 1")
             
+        # Relevance threshold: Only show results with meaningful relevance
+        # 0.4 = 40% relevance score (adjusted for our weighted scoring)
+        RELEVANCE_THRESHOLD = 0.4
+        
         scores = {}
         
         for spot_id, metadata in self.indexer.spot_metadata.items():
             score = self._calculate_relevance_score(spot_id, metadata, constraints)
             scores[spot_id] = score
         
-        # Sort by score (descending), then by rating as tiebreaker for identical scores
+        # Sort by score (descending), then by rating as tiebreaker
         ranked = sorted(scores.items(), 
                        key=lambda x: (x[1], self.indexer.get_spot_by_id(x[0])['rating']),
                        reverse=True)
         
         results = []
-        for spot_id, score in ranked[:top_k]:
+        for spot_id, score in ranked:
+            # Filter by relevance threshold, not by top_k
+            if score < RELEVANCE_THRESHOLD:
+                break  # Since sorted, all remaining will be lower
+                
             metadata = self.indexer.get_spot_by_id(spot_id)
-            if metadata:  # Extra safety check
+            if metadata:
                 results.append((spot_id, score, metadata))
         
-        logger.debug(f"Ranked {len(results)} spots, returning top {top_k}")
+        logger.debug(f"Ranked {len(results)} spots with score >= {RELEVANCE_THRESHOLD}")
         return results
     
     def _calculate_relevance_score(self, spot_id: int, metadata: Dict, constraints: Dict) -> float:
@@ -81,16 +92,49 @@ class TravelSpotRanker:
         # Search for query terms in description and name
         if constraints.get('query_terms'):
             desc_score = self._calculate_description_match_score(metadata, constraints['query_terms'])
+            
+            # STRICT FILTERING: If query terms provided but no strong match found
+            # desc_score < 0.5 means no name match (only description/mood match)
+            if desc_score < 0.5:
+                # Check if any other explicit constraints exist
+                has_other_constraints = (
+                    constraints.get('budget_max') is not None or
+                    constraints.get('mood') or
+                    constraints.get('duration_days') is not None or
+                    constraints.get('distance_km') is not None or
+                    constraints.get('best_months')
+                )
+                
+                # If no other constraints, this spot is irrelevant
+                # User is searching by name/keyword only, so require name match
+                if not has_other_constraints:
+                    return 0.0
+            
             score += desc_score * 0.15
         else:
             score += 0.5 * 0.15
         
         # 1. BUDGET SCORE (25% weight) - Always primary
         if constraints.get('budget_max'):
+            # OVERLAP FILTERING: Show places with ANY overlap with user's budget range
+            if constraints.get('budget_min'):
+                # Check if there's ANY overlap between ranges
+                # No overlap if: spot_max < user_min OR spot_min > user_max
+                if metadata['budget_max'] < constraints['budget_min']:
+                    return 0.0  # Spot is entirely too cheap
+                if metadata['budget_min'] > constraints['budget_max']:
+                    return 0.0  # Spot is entirely too expensive
+                # Otherwise there's overlap - show it!
+            else:
+                # Only max specified: spot must start at or below user's max
+                if metadata['budget_min'] > constraints['budget_max']:
+                    return 0.0
+
             budget_score = self._calculate_budget_score(
                 metadata['budget_min'],
                 metadata['budget_max'],
-                constraints['budget_max']
+                constraints['budget_max'],
+                constraints.get('budget_min')
             )
             score += budget_score * 0.25
         else:
@@ -144,12 +188,12 @@ class TravelSpotRanker:
         """
         Score based on how well query terms match the description, name, and mood.
         
-        Searches across:
-        - Destination name (highest weight)
-        - Description (medium weight)
-        - Moods (medium weight)
+        STRICT MATCHING:
+        - If query term is in the name: Score highly (1.0)
+        - If query term is NOT in name but in description/mood: Score low (0.3)
+        - If no match at all: Score 0
         
-        Returns score between 0 and 1.
+        This ensures "beach" returns only "Goa Beach", not all places mentioning beach.
         """
         if not query_terms:
             return 0.5
@@ -158,27 +202,37 @@ class TravelSpotRanker:
         desc_lower = metadata.get('description', '').lower()
         moods_text = ' '.join(metadata.get('mood', [])).lower()
         
-        match_count = 0
+        name_matches = 0
+        desc_matches = 0
+        mood_matches = 0
         total_terms = len(query_terms)
         
         for term in query_terms:
             term_lower = term.lower()
             
-            # Name match has highest priority (weight 3)
             if term_lower in name_lower:
-                match_count += 3
-            # Mood match (weight 2)
+                name_matches += 1
             elif term_lower in moods_text:
-                match_count += 2
-            # Description match (weight 1)
+                mood_matches += 1
             elif term_lower in desc_lower:
-                match_count += 1
+                desc_matches += 1
         
-        # Normalize: max is (3 * total_terms) for perfect name matches
-        max_possible = 3 * total_terms
-        score = min(match_count / max_possible, 1.0) if max_possible > 0 else 0.5
+        # STRICT SCORING:
+        # If ANY term matches the name, this is highly relevant
+        if name_matches > 0:
+            # Perfect match if all terms in name
+            return min(name_matches / total_terms, 1.0)
         
-        return score
+        # If no name match but mood/description match, give low score
+        # This prevents "beach" from matching "hill station with beach views"
+        if mood_matches > 0:
+            return 0.3 * (mood_matches / total_terms)
+        
+        if desc_matches > 0:
+            return 0.2 * (desc_matches / total_terms)
+        
+        # No match at all
+        return 0
     
     def _calculate_name_boost(self, spot_name: str, constraints: Dict) -> float:
         """
@@ -225,43 +279,47 @@ class TravelSpotRanker:
         matches = sum(1 for month in user_months if month in spot_best_months)
         return min(1.0, matches / len(user_months))  # Max 1.0
     
-    def _calculate_budget_score(self, budget_min: int, budget_max: int, user_budget: int) -> float:
+    def _calculate_budget_score(self, budget_min: int, budget_max: int, user_budget_max: int, user_budget_min: Optional[int] = None) -> float:
         """
         Score based on budget fit.
-        CRITICAL: Prioritize LOWEST budget_min for budget-conscious queries.
         
-        Scoring strategy:
-        - Perfect match (budget_min = user_budget): 1.0
-        - Within range: 1.0 base, bonus for low budget_min
-        - Slightly over budget: 0.85 (manageable)
-        - Moderately over: 0.75
-        - Way over: < 0.50
+        Args:
+            budget_min: Spot's minimum budget
+            budget_max: Spot's maximum budget
+            user_budget_max: User's maximum budget
+            user_budget_min: User's minimum budget (optional)
         """
-        if budget_min <= user_budget <= budget_max:
+        # Case 1: Range Query (e.g. 1000-2000)
+        if user_budget_min is not None:
+            # Check for overlap between [user_min, user_max] and [spot_min, spot_max]
+            overlap_start = max(budget_min, user_budget_min)
+            overlap_end = min(budget_max, user_budget_max)
+            
+            if overlap_start <= overlap_end:
+                # There is an overlap!
+                # Calculate how much of the spot's range is covered by user's range
+                # or just return high score for overlap.
+                return 1.0
+            else:
+                # No overlap, but we already filtered out strictly invalid ones.
+                # This case shouldn't be reached if strict filtering is on, 
+                # but just in case:
+                return 0.5
+
+        # Case 2: Max Limit Query (e.g. budget 2000)
+        if budget_min <= user_budget_max <= budget_max:
             # User budget is within the spot's budget range
             # BONUS: Prioritize spots with LOWEST budget_min (most affordable)
-            # This ensures Tirupathi (₹1000) ranks above Goa (₹2500) when budget=3500
-            affordability_bonus = max(0, 1.0 - (budget_min / user_budget) * 0.1)
+            affordability_bonus = max(0, 1.0 - (budget_min / user_budget_max) * 0.1)
             return min(1.0, 1.0 + affordability_bonus)
-        elif user_budget < budget_min:
+        elif user_budget_max < budget_min:
             # User budget is too low - penalize significantly
-            deficit = budget_min - user_budget
-            # CRITICAL: Less penalty if deficit is small (user can spend a bit more)
-            if deficit <= 500:
-                return 0.85  # Only slightly over budget
-            elif deficit <= 1000:
-                return 0.75  # Moderately over budget
-            else:
-                penalty = min(deficit / budget_min, 0.7)  # Max 70% penalty
-                return max(0.3, 1.0 - penalty)
+            # (Should be filtered out by strict check, but keeping for robustness)
+            return 0.0
         else:
-            # User budget is higher than needed
-            # More expensive spots get lower score when user wants cheap
-            overage = user_budget - budget_max
-            if overage > budget_max:  # Much more expensive than budget
-                return 0.5
-            else:
-                return 0.85  # Acceptable for overspending
+            # User budget is higher than needed (user_budget_max > budget_max)
+            # This is GOOD! The user can easily afford this.
+            return 1.0
     
     def _calculate_mood_score(self, spot_moods: List[str], user_moods: List[str]) -> float:
         """
@@ -339,11 +397,18 @@ class TravelSpotRanker:
             budget_score = self._calculate_budget_score(
                 metadata['budget_min'],
                 metadata['budget_max'],
-                constraints['budget_max']
+                constraints['budget_max'],
+                constraints.get('budget_min')
             )
+            
+            if constraints.get('budget_min'):
+                reason = f"Budget ₹{metadata['budget_min']}-{metadata['budget_max']}, you want ₹{constraints['budget_min']}-{constraints['budget_max']}"
+            else:
+                reason = f"Budget ₹{metadata['budget_min']}-{metadata['budget_max']}, you have ₹{constraints['budget_max']}"
+                
             explanation['components']['budget'] = {
                 'score': round(budget_score * 0.25, 3),
-                'reason': f"Budget ₹{metadata['budget_min']}-{metadata['budget_max']}, you have ₹{constraints['budget_max']}"
+                'reason': reason
             }
         else:
             explanation['components']['budget'] = {

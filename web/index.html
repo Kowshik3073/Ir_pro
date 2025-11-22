@@ -1,372 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Spot Recommendation</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Travel Finder</title>
+    <link rel="stylesheet" href="styles.css?v=4">
     <style>
-        /* Index-specific styles */
-        .hero {
-            text-align: center;
-            padding: 60px 20px 40px;
-            position: relative;
-        }
-
-        .search-wrapper {
-            max-width: 900px;
-            margin: 0 auto 60px;
-            animation: fadeInUp 0.8s ease 0.8s both;
-        }
-
-        .search-card {
-            background: linear-gradient(135deg, var(--bg-card), rgba(51, 65, 85, 0.8));
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: clamp(30px, 5vw, 50px);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .search-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-        }
-
-        .search-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .search-title {
-            font-size: clamp(1.3rem, 3vw, 1.8rem);
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .browse-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(99, 102, 241, 0.1);
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 10px 20px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .browse-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateX(3px);
-        }
-
-        .search-form {
-            position: relative;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 20px 24px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            color: var(--text-primary);
-            font-size: 1.05rem;
-            font-family: inherit;
-            resize: none;
-            min-height: 80px;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .quick-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .quick-tag {
-            padding: 8px 16px;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 20px;
-            color: var(--primary);
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .quick-tag:hover {
-            background: rgba(99, 102, 241, 0.2);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .search-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
-        }
-
-        .search-btn:active {
-            transform: translateY(0);
-        }
-
-        .results-section {
-            flex: 1;
-            padding-bottom: 60px;
-        }
-
-        .results-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .results-title {
-            font-size: clamp(1.5rem, 3vw, 2rem);
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .results-subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        .results-grid {
-            display: grid;
-            gap: 24px;
-        }
-
-        .result-card {
-            background: linear-gradient(135deg, var(--bg-card), rgba(51, 65, 85, 0.6));
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 28px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: slideUp 0.5s ease both;
-        }
-
-        .result-card:nth-child(1) { animation-delay: 0.1s; }
-        .result-card:nth-child(2) { animation-delay: 0.2s; }
-        .result-card:nth-child(3) { animation-delay: 0.3s; }
-        .result-card:nth-child(4) { animation-delay: 0.4s; }
-        .result-card:nth-child(5) { animation-delay: 0.5s; }
-
-        .result-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-        }
-
-        .result-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-            border-color: var(--primary);
-        }
-
-        .rank-badge {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-        }
-
-        .destination-name {
-            font-size: clamp(1.3rem, 3vw, 1.6rem);
-            font-weight: 700;
-            flex: 1;
-            line-height: 1.3;
-        }
-
-        .card-description {
-            background: rgba(15, 23, 42, 0.4);
-            padding: 16px;
-            border-radius: 12px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.7;
-            border-left: 3px solid var(--accent);
-        }
-
-        @media (max-width: 768px) {
-            .search-card {
-                padding: 25px;
-            }
-
-            .quick-tags {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .search-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .browse-btn {
-                justify-content: center;
-            }
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
         }
     </style>
 </head>
+
 <body>
-    <div class="bg-animation"></div>
-    
     <div class="container">
-        <!-- Hero Section -->
-        <section class="hero">
-            <h1 class="logo">Travel Spot Recommendation</h1>
-            <p class="tagline">Find your perfect travel destination</p>
-        </section>
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">🌍 Travel Finder</h1>
+            <div class="header-actions">
+                <button onclick="app.showLocationModal()" class="location-btn">📍 Change Location</button>
+                <a href="all-places.html" class="browse-link">View All Places →</a>
+            </div>
+        </header>
 
         <!-- Search Section -->
-        <div class="search-wrapper">
-            <div class="search-card">
-                <div class="search-header">
-                    <h2 class="search-title">Find Your Next Adventure</h2>
-                    <a href="all-places.html" class="browse-btn">
-                        <span>Browse All</span>
-                        <span>→</span>
-                    </a>
-                </div>
-
+        <main class="main">
+            <div class="search-section">
+                <h2 class="search-title">Where do you want to go?</h2>
                 <form id="searchForm" class="search-form">
-                    <div class="search-input-wrapper">
-                        <textarea 
-                            id="queryInput" 
-                            class="search-input"
-                            placeholder="Tell us what you're looking for... (e.g., 'peaceful mountains under 10k' or 'adventure beach 5 days')"
-                            onkeydown="app.handleQueryKeydown(event)"
-                        ></textarea>
-                    </div>
-
-                    <div class="quick-tags">
-                        <span class="quick-tag" onclick="document.getElementById('queryInput').value='beach relaxation'; app.handleSearch();">🏖️ Beach Vibes</span>
-                        <span class="quick-tag" onclick="document.getElementById('queryInput').value='mountain adventure'; app.handleSearch();">⛰️ Mountains</span>
-                        <span class="quick-tag" onclick="document.getElementById('queryInput').value='spiritual peaceful'; app.handleSearch();">🙏 Spiritual</span>
-                        <span class="quick-tag" onclick="document.getElementById('queryInput').value='budget friendly'; app.handleSearch();">💰 Budget</span>
-                        <span class="quick-tag" onclick="document.getElementById('queryInput').value='romantic couple'; app.handleSearch();">💑 Romantic</span>
-                    </div>
-
-                    <button type="submit" class="search-btn">
-                        <span>✨</span>
-                        <span>Discover Destinations</span>
-                    </button>
+                    <input type="text" id="queryInput" class="search-input"
+                        placeholder="Try 'beach', 'budget 5000', or 'adventure mountains'" autocomplete="off">
+                    <button type="submit" class="search-btn">Search</button>
                 </form>
-            </div>
-        </div>
 
-        <!-- Results Section -->
-        <section class="results-section">
+                <div class="quick-filters">
+                    <button class="filter-tag"
+                        onclick="document.getElementById('queryInput').value='beach'; app.handleSearch();">🏖️
+                        Beach</button>
+                    <button class="filter-tag"
+                        onclick="document.getElementById('queryInput').value='mountain'; app.handleSearch();">⛰️
+                        Mountain</button>
+                    <button class="filter-tag"
+                        onclick="document.getElementById('queryInput').value='spiritual'; app.handleSearch();">🙏
+                        Spiritual</button>
+                    <button class="filter-tag"
+                        onclick="document.getElementById('queryInput').value='budget 3000'; app.handleSearch();">�
+                        Budget</button>
+                </div>
+            </div>
+
             <!-- Loading -->
             <div id="loading" class="loading">
-                <div class="loader"></div>
-                <p class="loading-text">Finding your perfect destinations...</p>
+                <div class="spinner"></div>
+                <p>Searching...</p>
             </div>
 
-            <!-- Results Header -->
+            <!-- Popular Destinations (Initial State) -->
+            <div id="popularDestinations" class="popular-section">
+                <h3 class="section-title">🔥 Popular Destinations</h3>
+                <div id="popularGrid" class="popular-grid">
+                    <!-- Popular items will be injected here -->
+                </div>
+            </div>
+
+            <!-- Results -->
             <div id="resultsHeader" class="results-header" style="display: none;">
-                <h2 class="results-title">Your Perfect Matches</h2>
-                <p class="results-subtitle">Personalized recommendations just for you</p>
+                <h3>Results</h3>
+                <div class="sort-controls">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy" onchange="app.handleSort()">
+                        <option value="relevance">Relevance</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                        <option value="rating">Rating: High to Low</option>
+                        <option value="distance">Distance: Nearest</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- Results Grid -->
-            <div id="results" class="results-grid"></div>
+            <div id="results" class="results"></div>
 
             <!-- No Results -->
             <div id="noResults" class="no-results">
-                <div class="no-results-icon">🔍</div>
-                <p class="no-results-text">No destinations found. Try different keywords!</p>
+                <p>😕 No places found. Try a different search!</p>
             </div>
-        </section>
+        </main>
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2025 Travel Spot Recommendation • Find Your Perfect Destination</p>
+            <p>Travel Finder © 2025</p>
         </footer>
     </div>
 
     <!-- Location Modal -->
     <div id="locationModal" class="modal">
         <div class="modal-content">
-            <div class="modal-icon">📍</div>
-            <h2 class="modal-title">Where are you?</h2>
-            <p class="modal-subtitle">We'll calculate distances and show nearby attractions</p>
-            <input 
-                type="text" 
-                id="userLocation" 
-                class="modal-input"
-                placeholder="Enter your city (e.g., Mumbai, Delhi)"
-            >
-            <button onclick="app.setUserLocation()" class="modal-btn">Save Location</button>
-            <p class="modal-note">You can change this anytime</p>
+            <h3>📍 Your Location</h3>
+            <p>Enter your city to see distances</p>
+            <input type="text" id="userLocation" class="modal-input" placeholder="e.g., Mumbai, Delhi">
+            <button onclick="app.setUserLocation()" class="modal-btn">Save</button>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>

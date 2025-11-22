@@ -72,10 +72,6 @@ class APIRequestHandler(SimpleHTTPRequestHandler):
             # Serve static files
             super().do_GET()
     
-    def do_DELETE(self):
-        """Handle DELETE requests"""
-        self.send_error(404)
-    
     def handle_recommend(self):
         """
         Handle recommendation request.

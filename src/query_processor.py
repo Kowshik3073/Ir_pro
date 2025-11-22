@@ -26,7 +26,7 @@ class QueryProcessor:
     MOOD_KEYWORDS = {
         'adventure': ['adventure', 'trekking', 'hiking', 'extreme', 'thrill', 'trek', 'climb'],
         'nature': ['nature', 'wildlife', 'forest', 'scenic', 'landscape', 'hill', 'mountain', 'snow'],
-        'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest', 'beach', 'backwater'],
+        'relaxing': ['relax', 'chill', 'peaceful', 'calm', 'quiet', 'rest'],
         'party': ['party', 'nightlife', 'disco', 'club', 'fun', 'dance', 'night'],
         'cultural': ['culture', 'cultural', 'heritage', 'art', 'museum', 'city', 'tour'],
         'history': ['history', 'historical', 'ancient', 'monument', 'temple'],
@@ -159,17 +159,18 @@ class QueryProcessor:
         
         # Initialize constraints with proper types
         self.constraints = {
+            'budget_min': None,  # NEW: Minimum budget
             'budget_max': None,
             'mood': [],
             'duration_days': None,
             'distance_km': None,
             'place_name': None,
             'best_months': [],
-            'query_terms': []  # NEW: Raw query terms for description matching
+            'query_terms': []
         }
         
         # Extract all constraints from query
-        self._extract_query_terms()  # NEW: Extract terms first
+        self._extract_query_terms()
         self._extract_place_name()
         self._extract_budget()
         self._extract_mood()
@@ -183,21 +184,43 @@ class QueryProcessor:
         """
         Extract budget constraint from query.
         
-        Supports multiple formats:
-        - "1000" - just a number
-        - "budget 1000"
-        - "1000 rupees"
-        - "I have 1000 rupees"
-        - "cheap" / "budget-friendly" -> 3500 default
-        
-        Always extract actual numbers first (highest priority) before applying defaults.
+        Supports:
+        - Ranges: "1000-2000", "budget is 1000-2000", "1000 to 2000"
+        - Max limits: "budget 1500", "under 2000"
+        - Defaults: "cheap" -> 3500
         """
         if not self.query:
             return
             
-        # Try to extract actual budget numbers first (highest priority)
+        # 1. Check for RANGES first (HIGHEST PRIORITY)
+        # This must come before single number extraction
+        range_patterns = [
+            r'(\d+)\s*-\s*(\d+)',                          # 1000-2000, budget is 1000-2000
+            r'(\d+)\s+to\s+(\d+)',                         # 1000 to 2000
+            r'between\s+(\d+)\s+and\s+(\d+)',              # between 1000 and 2000
+            r'from\s+(\d+)\s+to\s+(\d+)'                   # from 1000 to 2000
+        ]
+        
+        for pattern in range_patterns:
+            match = re.search(pattern, self.query)
+            if match:
+                try:
+                    min_val = int(match.group(1))
+                    max_val = int(match.group(2))
+                    # Ensure min < max
+                    if min_val > max_val:
+                        min_val, max_val = max_val, min_val
+                        
+                    self.constraints['budget_min'] = min_val
+                    self.constraints['budget_max'] = max_val
+                    return # Found range, stop looking
+                except ValueError:
+                    continue
+
+        # 2. Check for SINGLE numbers (Max limit)
+        # Only if no range was found
         patterns = [
-            r'(?:budget|rupees|rs|inr)\s*[:\s]+(\d+)',  # budget: 5000 or rupees 5000
+            r'(?:budget|rupees|rs|inr)\s*(?:is|of|max|maximum|limit|under|below)?\s*[:\s]*(\d+)',  # budget is 5000
             r'(\d+)\s*(?:rupees|rs|inr)',                # 5000 rupees
             r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?\s*[:\s]*(\d+)',  # upto 5000
             r'^(\d+)$',                                   # just "5000"
@@ -213,7 +236,7 @@ class QueryProcessor:
                 except ValueError:
                     continue
         
-        # If no number found, check for budget-related keywords with defaults
+        # 3. If no number found, check for budget-related keywords with defaults
         if 'cheap' in self.query or 'affordable' in self.query or 'budget' in self.query or 'friendly' in self.query:
             self.constraints['budget_max'] = 3500  # Default affordable budget
     
