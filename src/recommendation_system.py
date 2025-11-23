@@ -56,7 +56,7 @@ class TravelSpotRecommendationSystem:
             logger.error(f"Failed to initialize recommendation engine: {str(initialization_error)}")
             raise
     
-    def recommend_with_explanation(self, user_query: str, top_k: int = 5) -> Dict:
+    def recommend_with_explanation(self, user_query: str, top_k: int = 10) -> Dict:
         """
         Get destination recommendations with complete details and explanation.
         
@@ -110,7 +110,7 @@ class TravelSpotRecommendationSystem:
             logger.error(f"Error generating recommendations: {str(processing_error)}")
             raise
 
-    def recommend(self, user_query: str, top_k: int = 5) -> List[Dict]:
+    def recommend(self, user_query: str, top_k: int = 10) -> List[Dict]:
         """
         Compatibility wrapper.
         Returns just the list of recommendations.

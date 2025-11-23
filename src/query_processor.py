@@ -82,14 +82,45 @@ class QueryProcessor:
         word_list = self.user_input.split()
         
         # Keep only meaningful words (not filler, length > 2, not numbers)
-        significant_words = [
-            word.strip('.,!?;:') for word in word_list 
-            if (word.lower() not in filler_words and 
-                len(word) > 2 and 
-                not word.isdigit())  # Exclude pure numbers like "3000"
-        ]
+        # Keep only meaningful words (not filler, length > 2, not numbers)
+        significant_words = []
         
-        self.parsed_filters['query_terms'] = significant_words
+        # Simple singularization map for common travel terms
+        singular_map = {
+            'mountains': 'mountain',
+            'hills': 'hill',
+            'beaches': 'beach',
+            'temples': 'temple',
+            'caves': 'cave',
+            'valleys': 'valley',
+            'lakes': 'lake',
+            'waterfalls': 'waterfall',
+            'forests': 'forest',
+            'islands': 'island',
+            'monuments': 'monument'
+        }
+        
+        for word in word_list:
+            clean_word = word.strip('.,!?;:')
+            if (clean_word.lower() not in filler_words and 
+                len(clean_word) > 2 and 
+                not clean_word.isdigit()):
+                
+                # Apply singularization
+                if clean_word.lower() in singular_map:
+                    clean_word = singular_map[clean_word.lower()]
+                elif clean_word.lower().endswith('s') and clean_word.lower()[:-1] in singular_map.values():
+                     pass 
+                
+                significant_words.append(clean_word)
+                
+                # Synonym expansion for broad categories
+                if clean_word == 'mountain':
+                    significant_words.append('hill')
+                elif clean_word == 'hill':
+                    significant_words.append('mountain')
+        
+        self.parsed_filters['query_terms'] = list(set(significant_words))  # Deduplicate
     
     def _identify_destination(self) -> None:
         """
@@ -231,6 +262,8 @@ class QueryProcessor:
             r'(\d+)\s*(?:rupees|rs|inr)',
             r'(?:upto|up to|within|max|maximum)\s+(?:rupees|rs)?\s*[:\s]*(\d+)',
             r'^(\d+)$',
+            # Standalone numbers (3+ digits) not followed by units (km, days, etc.)
+            r'\b(\d{3,})\b(?!\s*(?:km|kilometers|days?|d|nights?|n|miles))'
         ]
         
         for single_pattern in single_value_patterns:

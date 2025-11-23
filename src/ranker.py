@@ -19,7 +19,7 @@ class TravelSpotRanker:
     def __init__(self, indexer: TravelSpotIndexer):
         self.data_indexer = indexer
     
-    def rank_spots(self, constraints: Dict, top_k: int = 5) -> List[Tuple[int, float, Dict]]:
+    def rank_spots(self, constraints: Dict, top_k: int = 10) -> List[Tuple[int, float, Dict]]:
         """
         Compute relevance scores for all destinations based on user criteria.
         
@@ -56,7 +56,11 @@ class TravelSpotRanker:
         
         final_results = []
         for destination_id, relevance_score in sorted_results:
-            # Apply relevance threshold, not top_k limit
+            # Enforce Top-K limit
+            if len(final_results) >= top_k:
+                break
+                
+            # Apply relevance threshold
             if relevance_score < MIN_RELEVANCE_THRESHOLD:
                 break  # Remaining items will have lower scores
                 
@@ -146,6 +150,13 @@ class TravelSpotRanker:
         # Component 2: ATMOSPHERE SCORE (20% weight)
         if constraints.get('mood'):
             atmosphere_relevance = self._evaluate_atmosphere_match(metadata['mood'], constraints['mood'])
+            
+            # STRICT MOOD FILTERING:
+            # If user explicitly requested specific moods (e.g. "adventure"),
+            # exclude destinations that don't match ANY of those moods.
+            if atmosphere_relevance == 0:
+                return 0.0
+                
             total_score += atmosphere_relevance * 0.20
         else:
             total_score += 0.5 * 0.20
